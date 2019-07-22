@@ -1,0 +1,32 @@
+description = "Bionic base image with the Java, Node.js, and .NET Core buildpacks"
+
+[[buildpacks]]
+id = "org.cloudfoundry.go-compiler"
+latest = true
+version = "0.0.9"
+uri = "/Users/pivotal/workspace/go-compiler-cnb/go-compiler-cnb_80d8eebc"
+
+[[buildpacks]]
+id = "org.cloudfoundry.go-mod"
+latest = true
+version = "0.0.6"
+uri = "/Users/pivotal/workspace/go-mod-cnb/go-mod-cnb_0039888e"
+
+[[groups]]
+labels = ["go","go-mod"]
+
+[[groups.buildpacks]]
+id = "org.cloudfoundry.go-compiler"
+version = "latest"
+
+[[groups.buildpacks]]
+id = "org.cloudfoundry.go-mod"
+version = "latest"
+
+[lifecycle]
+version = "0.3.0"
+
+[stack]
+build-image = "cloudfoundry/build:dev-base-cnb"
+id = "io.buildpacks.stacks.bionic"
+run-image = "cloudfoundry/run:dev-base-cnb"
