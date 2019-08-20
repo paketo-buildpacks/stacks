@@ -27,6 +27,6 @@ version = "latest"
 version = "0.3.0"
 
 [stack]
-build-image = "cloudfoundry/build:dev-base-cnb"
-id = "io.buildpacks.stacks.bionic"
-run-image = "cloudfoundry/run:dev-base-cnb"
+build-image = "test/cflinuxfs3:build"
+id = "org.cloudfoundry.stacks.cflinuxfs3"
+run-image = "test/cflinuxfs3:run"

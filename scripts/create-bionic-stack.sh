@@ -3,6 +3,7 @@
 usage() { echo "Usage: $0 [-v <image version>]" 1>&2; exit 1; }
 version=dev
 
+# add stack arg
 while getopts "v" o; do
   case "${o}" in
     v)
@@ -17,8 +18,8 @@ done
 
 docker pull ubuntu:bionic
 
-scripts_dir=$(cd $(dirname $0) && pwd)
-dir=${scripts_dir}/..
+scripts_dir=$(cd "$(dirname $0)" && pwd)
+dir=${scripts_dir}/../bionic
 
 base_build=cloudfoundry/build:${version}-base
 base_run=cloudfoundry/run:${version}-base
