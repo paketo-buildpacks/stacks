@@ -8,8 +8,5 @@ ARG stack_id="io.buildpacks.stacks.bionic"
 RUN groupadd cnb --gid ${cnb_gid} && \
   useradd --uid ${cnb_uid} --gid ${cnb_gid} -m -s /bin/bash cnb
 
-ENV CNB_USER_ID=${cnb_uid}
-ENV CNB_GROUP_ID=${cnb_gid}
-
 USER cnb
 LABEL io.buildpacks.stack.id="${stack_id}"
