@@ -1,0 +1,11 @@
+libc6
+libssl1.1
+openssl
+base-files
+netbase
+tzdata
+libacl1
+libattr1
+libpcre3
+libselinux1
+coreutils

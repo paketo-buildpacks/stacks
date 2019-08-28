@@ -1,0 +1,6 @@
+libc6
+libssl1.1
+openssl
+base-files
+netbase
+tzdata
