@@ -1,6 +1,10 @@
-FROM cloudfoundry/cflinuxfs3:0.118.0 AS builder
+FROM ubuntu:bionic AS builder
 
 ARG PACKAGE_LIST=packagelist
+
+
+RUN apt-get update && \
+  apt-get install -y xz-utils binutils
 
 ADD install-certs.sh .
 ADD download-and-install-package.sh .
