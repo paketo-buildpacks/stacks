@@ -1,6 +1,6 @@
-# Pivotal Tiny
+# Tiny
 
-Pivotal Tiny is a base image for containers.  It is functionally equivalent to Google's Distroless, but built with packages which are supported by Pivotal (and Pivotal's supplier, Canonical).
+Tiny is a base image for containers.  It is functionally equivalent to Google's Distroless, but built with Ubuntu packages rather than Debian.
 
 ## Installed Packages
 
@@ -38,7 +38,3 @@ You will need to have [bats](https://github.com/sstephenson/bats) installed (`br
 ```bash
 scripts/filediff gcr.io/distroless/base
 ```
-
-## Support
-
-Please contact `@navcon` in `#navcon-team` on Slack.
