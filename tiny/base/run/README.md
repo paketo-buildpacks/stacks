@@ -23,6 +23,26 @@ Tiny is a base image for containers.  It is functionally equivalent to Google's 
 * `/etc/services` file
 * an empty `/tmp` directory
 
+
+## Usage
+
+`docker pull cloudfoundry/tiny`
+
+Users should compile their application and set an entrypoint. As an example:
+```Dockerfile
+FROM golang AS build-env
+
+ADD . /app
+
+RUN cd /app && \
+    go build -o test
+
+FROM cloudfoundry/tiny
+COPY --from=build-env /app/test /test
+
+ENTRYPOINT ["/test"]
+```
+
 ## Building
 
 1. Clone this repository and `cd` into the directory
@@ -38,3 +58,4 @@ You will need to have [bats](https://github.com/sstephenson/bats) installed (`br
 ```bash
 scripts/filediff gcr.io/distroless/base
 ```
+
