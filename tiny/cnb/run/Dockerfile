@@ -1,6 +1,6 @@
 ARG cnb_uid=1000
 ARG cnb_gid=1000
-ARG stack_id="io.buildpacks.stacks.tiny"
+ARG stack_id="org.cloudfoundry.stacks.tiny"
 
 FROM cloudfoundry/cnb-base:tiny AS tiny-source
 
