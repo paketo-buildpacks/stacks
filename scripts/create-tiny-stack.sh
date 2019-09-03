@@ -17,7 +17,6 @@ while getopts "v" o; do
 done
 
 docker pull ubuntu:bionic
-docker pull scratch
 
 scripts_dir=$(cd "$(dirname $0)" && pwd)
 bionic_dir=${scripts_dir}/../bionic
@@ -35,7 +34,7 @@ docker build -t "${base_build}" "$bionic_dir/base/build"
 docker build -t "${base_run}" "$tiny_dir/base/run"
 
 # Build CNB images
-docker build --build-arg "base_image=${base_build}" -t "${cnb_base_build}"  "$bionic_dir/cnb/build"
+docker build --build-arg "base_image=${base_build}" --build-arg "stack_id=org.cloudfoundry.stacks.tiny" -t "${cnb_base_build}"  "$bionic_dir/cnb/build"
 docker build --build-arg "base_image=${base_run}" -t "${cnb_base_run}" "$tiny_dir/cnb/run"
 
 echo "To publish these images:"
