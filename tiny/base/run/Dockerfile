@@ -2,7 +2,6 @@ FROM ubuntu:bionic AS builder
 
 ARG PACKAGE_LIST=packagelist
 
-
 RUN apt-get update && \
   apt-get install -y xz-utils binutils
 
