@@ -26,7 +26,11 @@ Tiny is a base image for containers.  It is functionally equivalent to Google's 
 
 ## Usage
 
-`docker pull cloudfoundry/tiny`
+For a image without additional users & groups required by cloud native buildpacks use the following
+`docker pull cloudfoundry/run:tiny`
+
+For a image with the cnb user + group required by cloud native buildpacks use the following
+`docker pull cloudfoundry/run:tiny-cnb`
 
 Users should compile their application and set an entrypoint. As an example:
 ```Dockerfile
