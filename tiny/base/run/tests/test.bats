@@ -66,7 +66,7 @@ setup() {
     local TMP_OSRELEASE=$(mktemp -d)
     docker cp "${container_id}:/etc/os-release" "${TMP_OSRELEASE}"
 
-    [[ "$(cat "${TMP_OSRELEASE}/os-release")" == "$(cat "./files/os-release")" ]]
+    [[ "$(grep -v 'VERSION=' "${TMP_OSRELEASE}/os-release" )" == "$(cat "./files/os-release")" && $(grep 'VERSION=' "${TMP_OSRELEASE}/os-release") ]]
 }
 
 @test "the /etc/group file exists" {

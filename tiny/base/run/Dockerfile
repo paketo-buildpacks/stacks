@@ -19,10 +19,13 @@ RUN mkdir -p /tiny/tmp \
     && ./install-certs.sh \
     && ./download-and-install-package.sh
 
-RUN rm /tiny/etc/os-release
-ADD files/os-release /tiny/etc/os-release
+ADD files/os-release /tmp/etc/os-release
+RUN . /tiny/etc/os-release \
+  && mv /tmp/etc/os-release /tiny/etc/os-release \
+  && echo "VERSION=\"${VERSION}\"" >> /tiny/etc/os-release
+
 RUN echo "" > /tiny/var/lib/dpkg/status
 
-FROM scratch 
+FROM scratch
 
 COPY --from=builder /tiny/ /
