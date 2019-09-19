@@ -1,10 +1,4 @@
-NAME="Ubuntu"
-ID=ubuntu
-ID_LIKE=debian
 PRETTY_NAME="Cloud Foundry Tiny"
-VERSION_ID="18.04"
 HOME_URL="https://github.com/cloudfoundry/stacks"
 SUPPORT_URL="https://github.com/cloudfoundry/stacks/blob/master/README.md"
 BUG_REPORT_URL="https://github.com/cloudfoundry/stacks/issues/new"
-VERSION_CODENAME=bionic
-UBUNTU_CODENAME=bionic

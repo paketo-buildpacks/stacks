@@ -20,9 +20,15 @@ RUN mkdir -p /tiny/tmp \
     && ./download-and-install-package.sh
 
 ADD files/os-release /tmp/etc/os-release
-RUN . /tiny/etc/os-release \
-  && mv /tmp/etc/os-release /tiny/etc/os-release \
-  && echo "VERSION=\"${VERSION}\"" >> /tiny/etc/os-release
+
+RUN grep -v 'PRETTY_NAME=' "/tiny/etc/os-release" \
+      | grep -v 'HOME_URL=' \
+      | grep -v 'SUPPORT_URL=' \
+      | grep -v 'BUG_REPORT_URL=' \
+      | tee /tmp/etc/os-release-upstream \
+    && rm /tiny/etc/os-release \
+    && cat /tmp/etc/os-release-upstream /tmp/etc/os-release \
+      | tee /tiny/etc/os-release
 
 RUN echo "" > /tiny/var/lib/dpkg/status
 
