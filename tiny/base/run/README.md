@@ -41,7 +41,7 @@ ADD . /app
 RUN cd /app && \
     go build -o test
 
-FROM cloudfoundry/tiny
+FROM cloudfoundry/run:tiny
 COPY --from=build-env /app/test /test
 
 ENTRYPOINT ["/test"]
