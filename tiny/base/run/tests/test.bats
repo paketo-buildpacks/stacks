@@ -13,6 +13,14 @@ setup() {
     check_file_exists /etc/ssl/certs/ca-certificates.crt
 }
 
+@test "the ca-certificates directory has been removed" {
+    run docker cp ${container_id}:/usr/share/ca-certificates -
+    [ "$status" -eq 1 ]
+}
+
+@test "the ca-certificates dpkg status.d exists" {
+    check_file_exists "/var/lib/dpkg/status.d/ca-certificates"
+}
 @test "the base-files dpkg status.d exists" {
     check_file_exists "/var/lib/dpkg/status.d/base-files"
 }

@@ -16,8 +16,8 @@ RUN mkdir -p /tiny/tmp \
     /tiny/home/nonroot \
     && export DEBIAN_FRONTEND=noninteractive \
     && apt -y update \
-    && ./install-certs.sh \
-    && ./download-and-install-package.sh
+    && ./download-and-install-package.sh \
+    && ./install-certs.sh
 
 RUN rm /tiny/etc/os-release
 ADD files/os-release /tiny/etc/os-release
