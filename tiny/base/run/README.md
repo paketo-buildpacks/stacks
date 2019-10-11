@@ -42,6 +42,7 @@ RUN cd /app && \
     go build -o test
 
 FROM cloudfoundry/run:tiny
+USER nonroot
 COPY --from=build-env /app/test /test
 
 ENTRYPOINT ["/test"]
