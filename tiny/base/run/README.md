@@ -34,7 +34,7 @@ For a image with the cnb user + group required by cloud native buildpacks use th
 
 Users should compile their application and set an entrypoint. As an example:
 ```Dockerfile
-FROM golang AS build-env
+FROM golang:stretch AS build-env
 
 ADD . /app
 
@@ -47,6 +47,11 @@ COPY --from=build-env /app/test /test
 
 ENTRYPOINT ["/test"]
 ```
+
+## Notes & Known Issues
+
+### Golang Compilation
+When compiling your application on `golang:latest` image, there are known incompatibilities between the `glibc` binaries in `golang:latest` compared to Tiny.  This is because `golang:latest` is a reference to the `golang:buster` image and buster deviates from ubuntu bionic, on which Tiny is based.  Instead, please use the `golang:stretch` image to compile golang binaries.
 
 ## Building
 
