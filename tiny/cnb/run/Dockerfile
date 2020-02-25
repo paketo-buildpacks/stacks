@@ -14,5 +14,5 @@ FROM ${base_image}
 COPY --from=builder /tiny/ /
 ARG stack_id="org.cloudfoundry.stacks.tiny"
 
-USER cnb
+USER ${cnb_uid}:${cnb_gid}
 LABEL io.buildpacks.stack.id="${stack_id}"
