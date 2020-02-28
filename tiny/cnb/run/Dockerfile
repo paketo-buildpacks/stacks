@@ -13,6 +13,8 @@ RUN echo "cnb:x:${cnb_uid}:${cnb_gid}:cnb:/home/cnb:/sbin/nologin" >> /tiny/etc/
 FROM ${base_image}
 COPY --from=builder /tiny/ /
 ARG stack_id="org.cloudfoundry.stacks.tiny"
+ARG cnb_uid=1000
+ARG cnb_gid=1000
 
 USER ${cnb_uid}:${cnb_gid}
 LABEL io.buildpacks.stack.id="${stack_id}"
