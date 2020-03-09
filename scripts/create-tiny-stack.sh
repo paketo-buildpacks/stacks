@@ -19,7 +19,7 @@ done
 docker pull ubuntu:bionic
 
 scripts_dir=$(cd "$(dirname $0)" && pwd)
-bionic_dir=${scripts_dir}/../bionic
+base_dir=${scripts_dir}/../base
 tiny_dir=${scripts_dir}/../tiny
 
 # Define tags
@@ -30,11 +30,11 @@ cnb_base_build=cloudfoundry/build:${version}-base-cnb
 cnb_base_run=cloudfoundry/run:${version}-base-cnb
 
 # Build base images
-docker build -t "${base_build}" "$bionic_dir/base/build"
-docker build -t "${base_run}" "$tiny_dir/base/run"
+docker build -t "${base_build}" "$base_dir/dockerfile/build"
+docker build -t "${base_run}" "$tiny_dir/dockerfile/run"
 
 # Build CNB images
-docker build --build-arg "base_image=${base_build}" --build-arg "stack_id=org.cloudfoundry.stacks.tiny" -t "${cnb_base_build}"  "$bionic_dir/cnb/build"
+docker build --build-arg "base_image=${base_build}" --build-arg "stack_id=org.cloudfoundry.stacks.tiny" -t "${cnb_base_build}"  "$base_dir/cnb/build"
 docker build --build-arg "base_image=${base_run}" -t "${cnb_base_run}" "$tiny_dir/cnb/run"
 
 echo "To publish these images:"

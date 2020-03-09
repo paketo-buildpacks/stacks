@@ -19,7 +19,7 @@ done
 docker pull ubuntu:bionic
 
 scripts_dir=$(cd "$(dirname $0)" && pwd)
-dir=${scripts_dir}/../bionic
+dir=${scripts_dir}/../base
 
 base_build=cloudfoundry/build:${version}-base
 base_run=cloudfoundry/run:${version}-base
@@ -27,8 +27,8 @@ base_run=cloudfoundry/run:${version}-base
 cnb_base_build=cloudfoundry/build:${version}-base-cnb
 cnb_base_run=cloudfoundry/run:${version}-base-cnb
 
-docker build -t "${base_build}" "$dir/base/build"
-docker build -t "${base_run}" "$dir/base/run"
+docker build -t "${base_build}" "$dir/dockerfile/build"
+docker build -t "${base_run}" "$dir/dockerfile/run"
 docker build --build-arg "base_image=${base_build}" -t "${cnb_base_build}"  "$dir/cnb/build"
 docker build --build-arg "base_image=${base_run}" -t "${cnb_base_run}" "$dir/cnb/run"
 
