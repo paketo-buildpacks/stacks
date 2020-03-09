@@ -1,3 +1,3 @@
-module github.com/pivotal/tiny/tests/testapp
+module github.com/cloudfoundry/stacks/tiny/tests/testapp
 
 go 1.12

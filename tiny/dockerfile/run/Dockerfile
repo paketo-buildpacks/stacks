@@ -2,7 +2,6 @@ FROM ubuntu:bionic AS builder
 
 ARG PACKAGE_LIST=packagelist
 
-
 RUN apt-get update && \
   apt-get install -y xz-utils binutils
 
@@ -17,13 +16,22 @@ RUN mkdir -p /tiny/tmp \
     /tiny/home/nonroot \
     && export DEBIAN_FRONTEND=noninteractive \
     && apt -y update \
-    && ./install-certs.sh \
-    && ./download-and-install-package.sh
+    && ./download-and-install-package.sh \
+    && ./install-certs.sh
 
-RUN rm /tiny/etc/os-release
-ADD files/os-release /tiny/etc/os-release
+ADD files/os-release /tmp/etc/os-release
+
+RUN grep -v 'PRETTY_NAME=' "/tiny/etc/os-release" \
+      | grep -v 'HOME_URL=' \
+      | grep -v 'SUPPORT_URL=' \
+      | grep -v 'BUG_REPORT_URL=' \
+      | tee /tmp/etc/os-release-upstream \
+    && rm /tiny/etc/os-release \
+    && cat /tmp/etc/os-release-upstream /tmp/etc/os-release \
+      | tee /tiny/etc/os-release
+
 RUN echo "" > /tiny/var/lib/dpkg/status
 
-FROM scratch 
+FROM scratch
 
 COPY --from=builder /tiny/ /

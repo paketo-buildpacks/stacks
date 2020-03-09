@@ -13,6 +13,14 @@ setup() {
     check_file_exists /etc/ssl/certs/ca-certificates.crt
 }
 
+@test "the ca-certificates directory has been removed" {
+    run docker cp ${container_id}:/usr/share/ca-certificates -
+    [ "$status" -eq 1 ]
+}
+
+@test "the ca-certificates dpkg status.d exists" {
+    check_file_exists "/var/lib/dpkg/status.d/ca-certificates"
+}
 @test "the base-files dpkg status.d exists" {
     check_file_exists "/var/lib/dpkg/status.d/base-files"
 }
@@ -62,12 +70,33 @@ setup() {
 @test "the /etc/os-release file exists" {
     check_file_exists "/etc/os-release"
 }
+
+function remove_tiny_values {
+    grep -v 'PRETTY_NAME=' $1 \
+      | grep -v 'HOME_URL=' \
+      | grep -v 'SUPPORT_URL=' \
+      | grep -v 'BUG_REPORT_URL=' \
+      | sort
+}
+
 @test "the os-release file some contents" {
     local TMP_OSRELEASE=$(mktemp -d)
+    local TMP_ORIGINAL_OSRELEASE=$(mktemp -d)
+
+    ubuntu_container_id="$(docker create ubuntu:bionic foo)"
     docker cp "${container_id}:/etc/os-release" "${TMP_OSRELEASE}"
 
-    [[ "$(cat "${TMP_OSRELEASE}/os-release")" == "$(cat "./files/os-release")" ]]
+    docker cp -L "${ubuntu_container_id}:/etc/os-release" "${TMP_ORIGINAL_OSRELEASE}"
+
+    [[     $(grep 'PRETTY_NAME=' "${TMP_OSRELEASE}/os-release")  \
+        && $(grep 'HOME_URL=' "${TMP_OSRELEASE}/os-release") \
+        && $(grep 'SUPPORT_URL=' "${TMP_OSRELEASE}/os-release") \
+        && $(grep 'BUG_REPORT_URL=' "${TMP_OSRELEASE}/os-release") \
+        && "$( remove_tiny_values "${TMP_ORIGINAL_OSRELEASE}/os-release" )" == "$( remove_tiny_values "${TMP_OSRELEASE}/os-release" )" ]]
+
+    docker rm -v ${ubuntu_container_id}
 }
+
 
 @test "the /etc/group file exists" {
     check_file_exists "/etc/group"
