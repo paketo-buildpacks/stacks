@@ -1,15 +1,15 @@
 # Metadata for Paketo Build/Run Stack Images
 
 The following build/run stack images are supported:  
-**Base**: 
-	- `gcr.io/paketo-buildpacks/[build/run]:base-cnb` 
-	- `paketobuildpacks/[build/run]:base-cnb`
-**Full**: 
-	- `gcr.io/paketo-buildpacks/[build/run]:full-cnb-cf`  
-	- `paketobuildpacks/[build/run]:full-cnb-cf`
-**Tiny**: 
-	- `gcr.io/paketo-buildpacks/[build/run]:tiny-cnb`
-	- `paketobuildpacks/[build/run]:tiny-cnb`
+**Base**:  
+	- `gcr.io/paketo-buildpacks/[build/run]:base-cnb`  
+	- `paketobuildpacks/[build/run]:base-cnb`  
+**Full**:   
+	- `gcr.io/paketo-buildpacks/[build/run]:full-cnb-cf`   
+	- `paketobuildpacks/[build/run]:full-cnb-cf`  
+**Tiny**:  
+	- `gcr.io/paketo-buildpacks/[build/run]:tiny-cnb`  
+	- `paketobuildpacks/[build/run]:tiny-cnb` 
 
 ## Use Cases
 
