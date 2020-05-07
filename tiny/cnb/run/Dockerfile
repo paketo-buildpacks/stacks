@@ -18,3 +18,11 @@ ARG cnb_gid=1000
 
 USER ${cnb_uid}:${cnb_gid}
 LABEL io.buildpacks.stack.id="${stack_id}"
+
+LABEL io.buildpacks.stack.mixins="[\
+\"ca-certificates\", \
+\"libssl1.1\", \
+\"openssl\", \
+\"run:ca-certificates\", \
+\"run:libssl1.1\", \
+\"run:openssl\"]"
