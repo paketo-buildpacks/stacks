@@ -6,10 +6,11 @@ RUN apt-get update && \
   ca-certificates \
   curl \
   git \
+  jq \
   libssl1.1 \
   openssl \
   xz-utils \
   && rm -rf /var/lib/apt/lists/*
 
-COPY ./bin/jq-linux64 /usr/local/bin/jq
-COPY ./bin/yj-linux /usr/local/bin/yj
+RUN curl -sL -o /usr/local/bin/yj https://github.com/sclevine/yj/releases/latest/download/yj-linux \
+  && chmod +x /usr/local/bin/yj
