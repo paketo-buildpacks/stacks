@@ -27,6 +27,6 @@ group = [
 version = "0.4.0"
 
 [stack]
-id = "org.cloudfoundry.stacks.tiny"
+id = "io.paketo.stacks.tiny"
 build-image = "cloudfoundry/build:dev-base-cnb"
 run-image = "cloudfoundry/run:dev-base-cnb"

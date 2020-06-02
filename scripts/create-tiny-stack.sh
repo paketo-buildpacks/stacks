@@ -34,7 +34,7 @@ docker build -t "${base_build}" "$base_dir/dockerfile/build"
 docker build -t "${base_run}" "$tiny_dir/dockerfile/run"
 
 # Build CNB images
-docker build --build-arg "base_image=${base_build}" --build-arg "stack_id=org.cloudfoundry.stacks.tiny" -t "${cnb_base_build}"  "$base_dir/cnb/build"
+docker build --build-arg "base_image=${base_build}" --build-arg "stack_id=io.paketo.stacks.tiny" -t "${cnb_base_build}"  "$base_dir/cnb/build"
 docker build --build-arg "base_image=${base_run}" -t "${cnb_base_run}" "$tiny_dir/cnb/run"
 
 echo "To publish these images:"

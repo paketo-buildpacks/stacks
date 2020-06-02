@@ -12,7 +12,7 @@ RUN echo "cnb:x:${cnb_uid}:${cnb_gid}:cnb:/home/cnb:/sbin/nologin" >> /tiny/etc/
 
 FROM ${base_image}
 COPY --from=builder /tiny/ /
-ARG stack_id="org.cloudfoundry.stacks.tiny"
+ARG stack_id="io.paketo.stacks.tiny"
 ARG cnb_uid=1000
 ARG cnb_gid=1000
 
