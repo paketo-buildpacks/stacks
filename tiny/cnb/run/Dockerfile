@@ -23,6 +23,8 @@ LABEL io.buildpacks.stack.mixins="[\
 \"ca-certificates\", \
 \"libssl1.1\", \
 \"openssl\", \
+\"zlib1g\", \
 \"run:ca-certificates\", \
 \"run:libssl1.1\", \
-\"run:openssl\"]"
+\"run:openssl\", \
+\"run:zlib1g\"]"

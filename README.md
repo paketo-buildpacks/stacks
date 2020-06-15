@@ -35,7 +35,8 @@ Contains:
 ### Tiny
 Ideal for:
 - Most Go apps
+- Java [GraalVM Native Images](https://www.graalvm.org/docs/reference-manual/native-image/)
 
 Contains:
 - Build: ubuntu:bionic + openssl + CA certs + compilers + shell utilities
-- Run: distroless-like bionic + glibc + openssl + CA certs
+- Run: distroless-like bionic + glibc + openssl + CA certs + zlib1g
