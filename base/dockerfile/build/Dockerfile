@@ -10,6 +10,7 @@ RUN apt-get update && \
   libssl1.1 \
   openssl \
   xz-utils \
+  zlib1g-dev \
   && rm -rf /var/lib/apt/lists/*
 
 RUN curl -sL -o /usr/local/bin/yj https://github.com/sclevine/yj/releases/latest/download/yj-linux \
