@@ -4,21 +4,26 @@ The following build/run stack images are supported:\
 **Base**:\
 Build Images
 - `gcr.io/paketo-buildpacks/build:base-cnb`
-- `index.docker.io/paketobuildpacks/build:base-cnb`
+- `index.docker.io/paketobuildpacks/build:base-cnb`  
+
 Run Images
 - `gcr.io/paketo-buildpacks/run:base-cnb`
-- `index.docker.io/paketobuildpacks/run:base-cnb`
-**Full**:
+- `index.docker.io/paketobuildpacks/run:base-cnb` 
+
+**Full**:\
 Build Images
 - `gcr.io/paketo-buildpacks/build:full-cnb-cf`
 - `index.docker.io/paketobuildpacks/build:full-cnb-cf`
+
 Run Images
 - `gcr.io/paketo-buildpacks/run:full-cnb-cf`
 - `index.docker.io/paketobuildpacks/run:full-cnb-cf`
-**Tiny**:
+
+**Tiny**:\
 Build Images
 - `gcr.io/paketo-buildpacks/build:tiny-cnb`
 - `index.docker.io/paketobuildpacks/build:tiny-cnb`
+
 Run Images
 - `gcr.io/paketo-buildpacks/run:tiny-cnb`
 - `index.docker.io/paketobuildpacks/run:tiny-cnb`
