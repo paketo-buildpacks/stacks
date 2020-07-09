@@ -39,4 +39,4 @@ Ideal for:
 
 Contains:
 - Build: ubuntu:bionic + openssl + CA certs + compilers + shell utilities
-- Run: distroless-like bionic + glibc + openssl + CA certs + zlib1g
+- Run: distroless-like bionic + glibc + openssl + CA certs
