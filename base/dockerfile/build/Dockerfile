@@ -7,7 +7,9 @@ RUN apt-get update && \
   curl \
   git \
   jq \
+  libgmp-dev \
   libssl1.1 \
+  libyaml-0-2 \
   openssl \
   xz-utils \
   zlib1g-dev \
