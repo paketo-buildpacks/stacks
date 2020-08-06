@@ -15,7 +15,7 @@ build_images() {
 
   scripts_dir=$(cd "$(dirname $0)" && pwd)
   base_dir=${scripts_dir}/..
-  stack_dir=${scripts_dir}/../bionic
+  stack_dir=${base_dir}/bionic
 
   build="${build_dest}:${version}-${stack_name}"
   run="${run_dest}:${version}-${stack_name}"
@@ -49,7 +49,7 @@ main() {
   build_dest=build
   run_dest=run
   stack_name=
-  
+
   while getopts "v:b:r:s:" o; do
     case "${o}" in
       v)
@@ -74,7 +74,11 @@ main() {
     esac
   done
 
-  build_images "${stack_name}" "${version}" "${build_dest}" "${run_dest}" 
+  if [[ "${stack_name}" != "full" && "${stack_name}" != "base" ]]; then
+    usage
+  fi
+
+  build_images "${stack_name}" "${version}" "${build_dest}" "${run_dest}"
 }
 
 main "$@"
