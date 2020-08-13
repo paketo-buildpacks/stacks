@@ -14,6 +14,7 @@ ADD files/group /tiny/etc/group
 
 RUN mkdir -p /tiny/tmp \
     /tiny/home/nonroot \
+    && chown nonroot:nonroot /tiny/home/nonroot \
     && export DEBIAN_FRONTEND=noninteractive \
     && apt -y update \
     && ./download-and-install-package.sh \
