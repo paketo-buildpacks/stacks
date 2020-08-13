@@ -8,7 +8,8 @@ ARG cnb_gid=1000
 
 RUN echo "cnb:x:${cnb_uid}:${cnb_gid}:cnb:/home/cnb:/sbin/nologin" >> /tiny/etc/passwd \
   && echo "cnb:x:${cnb_gid}" >> /tiny/etc/group \
-  && mkdir -p /tiny/home/cnb
+  && mkdir -p /tiny/home/cnb \
+  && chown ${cnb_uid}:${cnb_gid} /tiny/home/cnb
 
 FROM ${base_image}
 COPY --from=builder /tiny/ /
