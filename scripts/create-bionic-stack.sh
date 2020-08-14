@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -euo pipefail
+
 usage() {
   echo "Usage: $0 -s <base/full> [-b <build-dest>] [-r <run-dest>] [-v <image version>]" 1>&2
   exit 1

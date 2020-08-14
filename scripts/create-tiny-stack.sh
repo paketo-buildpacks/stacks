@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -euo pipefail
+
 usage() { echo "Usage: $0 [-v <image version>]" 1>&2; exit 1; }
 version=dev
 
