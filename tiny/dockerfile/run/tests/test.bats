@@ -97,7 +97,6 @@ function remove_tiny_values {
         && $(grep 'BUG_REPORT_URL=' "${TMP_OSRELEASE}/os-release") \
         && "$( remove_tiny_values "${TMP_ORIGINAL_OSRELEASE}/os-release" )" == "$( remove_tiny_values "${TMP_OSRELEASE}/os-release" )" ]]
 
-    docker rm -v ${ubuntu_container_id}
 }
 @test "the /etc/group file exists" {
     check_file_exists "/etc/group"
