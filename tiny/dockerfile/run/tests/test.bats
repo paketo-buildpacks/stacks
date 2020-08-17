@@ -78,15 +78,18 @@ function remove_tiny_values {
       | grep -v 'BUG_REPORT_URL=' \
       | sort
 }
-
 @test "the os-release file some contents" {
     local TMP_OSRELEASE=$(mktemp -d)
     local TMP_ORIGINAL_OSRELEASE=$(mktemp -d)
 
-    ubuntu_container_id="$(docker create ubuntu:bionic foo)"
-    docker cp "${container_id}:/etc/os-release" "${TMP_OSRELEASE}"
+    pushd $TMP_ORIGINAL_OSRELEASE
+    apt-get update
+    apt download base-files
+    BASE_FILES_DEB=$(ls)
+    ar p $BASE_FILES_DEB data.tar.xz | unxz | tar x -C .
+    popd
 
-    docker cp -L "${ubuntu_container_id}:/etc/os-release" "${TMP_ORIGINAL_OSRELEASE}"
+    docker cp "${container_id}:/etc/os-release" "${TMP_OSRELEASE}"
 
     [[     $(grep 'PRETTY_NAME=' "${TMP_OSRELEASE}/os-release")  \
         && $(grep 'HOME_URL=' "${TMP_OSRELEASE}/os-release") \
@@ -96,8 +99,6 @@ function remove_tiny_values {
 
     docker rm -v ${ubuntu_container_id}
 }
-
-
 @test "the /etc/group file exists" {
     check_file_exists "/etc/group"
 }
