@@ -95,7 +95,7 @@ function remove_tiny_values {
         && $(grep 'HOME_URL=' "${TMP_OSRELEASE}/os-release") \
         && $(grep 'SUPPORT_URL=' "${TMP_OSRELEASE}/os-release") \
         && $(grep 'BUG_REPORT_URL=' "${TMP_OSRELEASE}/os-release") \
-        && "$( remove_tiny_values "${TMP_ORIGINAL_OSRELEASE}/os-release" )" == "$( remove_tiny_values "${TMP_OSRELEASE}/os-release" )" ]]
+        && "$( remove_tiny_values "${TMP_ORIGINAL_OSRELEASE}/etc/os-release" )" == "$( remove_tiny_values "${TMP_OSRELEASE}/os-release" )" ]]
 
 }
 @test "the /etc/group file exists" {
