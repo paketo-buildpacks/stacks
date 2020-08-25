@@ -5,7 +5,15 @@ on:
   workflow_dispatch: {}
   push:
     branches: [ main ]
-    paths: ['tiny/**']
+    paths:
+    - 'tiny/**'
+    - 'bionic/cnb/build/Dockerfile'
+
+env:
+  BASE_RUN_TAG: gcr.io/cf-buildpacks-releng/build-rc:${{ github.sha }}-tiny
+  CNB_BUILD_TAG: gcr.io/cf-buildpacks-releng/build-rc:${{ github.sha }}-tiny-cnb
+  CNB_RUN_TAG: gcr.io/cf-buildpacks-releng/run-rc:${{ github.sha }}-tiny-cnb
+  STACK_ID: io.paketo.stacks.tiny
 
 jobs:
   test-docker-image:
@@ -27,3 +35,80 @@ jobs:
         docker build -t tiny .
         sudo bats -t ./tests/test.bats
         sudo bats -t ./tests/testapp.bats
+
+    - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+      with:
+        version: '270.0.0'
+        service_account_email: paketo-buildpacks-gcr-push@cf-buildpacks-releng.iam.gserviceaccount.com
+        service_account_key: ${{ secrets.CORE_DEPS_GCR_PUSH_BOT_KEY }}
+
+    - name: Configure docker gcloud auth
+      run: gcloud auth configure-docker
+
+    - name: Build Base Run Image
+      run: |
+        cd tiny/dockerfile/run
+        docker build . --tag "${BASE_RUN_TAG}"
+        docker push "${BASE_RUN_TAG}"
+
+    - name: Build CNB Build Image
+      run: |
+        docker build . \
+          --file bionic/cnb/build/Dockerfile \
+          --build-arg base_image=gcr.io/cf-buildpacks-releng/build-rc:base \
+          --build-arg stack_id="${STACK_ID}" \
+          --build-arg mixins='[]' \
+          --tag "${CNB_BUILD_TAG}"
+        docker push "${CNB_BUILD_TAG}"
+
+    - name: Build CNB Run Image
+      run: |
+        docker build . \
+          --file tiny/cnb/run/Dockerfile \
+          --build-arg base_image="${BASE_RUN_TAG}" \
+          --tag "${CNB_RUN_TAG}"
+        docker push "${CNB_RUN_TAG}"
+
+    - name: Setup CNB Tests
+      run: |
+        curl -sSL "https://github.com/buildpacks/pack/releases/download/v0.13.1/pack-v0.13.1-linux.tgz" \
+          | sudo tar -C /usr/local/bin/ --no-same-owner -xzv pack
+        git clone https://github.com/paketo-buildpacks/go.git /tmp/go
+
+    - name: Test CNB Images
+      run: |
+        cat > /tmp/test-builder.toml << EOF
+          description = "Test go builder"
+
+          [[buildpacks]]
+          image = "gcr.io/paketo-buildpacks/go:0.1.0"
+          version = "0.1.0"
+
+          [[order]]
+
+          [[order.group]]
+          id = "paketo-buildpacks/go"
+          version = "0.1.0"
+
+          [stack]
+          id = "${STACK_ID}"
+          build-image = "${CNB_BUILD_TAG}"
+          run-image = "${CNB_RUN_TAG}"
+        EOF
+
+        pack create-builder test-builder -c /tmp/test-builder.toml
+        pack build test-app --builder test-builder --path /tmp/go/integration/testdata/go_mod
+        docker run -d -p 8080:8080 test-app
+        curl http://localhost:8080
+
+    - name: Trigger Release
+      run: |
+        base_run_sha="$(docker inspect --format='{{index .RepoDigests 0}}' "${BASE_RUN_TAG}")"
+        cnb_run_sha="$(docker inspect --format='{{index .RepoDigests 0}}' "${CNB_BUILD_TAG}")"
+        cnb_build_sha="$(docker inspect --format='{{index .RepoDigests 0}}' "${CNB_RUN_TAG}")"
+
+        curl -XPOST -u 'paketo-bot:${{ secrets.PAKETO_BOT_GITHUB_TOKEN }}' \
+          -H "Accept: application/vnd.github.everest-preview+json" \
+          -H "Content-Type: application/json" \
+          --data "{\"event_type\": \"stack-commit\", \"client_payload\": {\"data\": {\"base_run_image\": \"${base_run_sha}\", \"cnb_run_image\": \"${cnb_run_sha}\", \"cnb_build_image\": \"${cnb_build_sha}\"}}}" \
+          https://api.github.com/repos/paketo-buildpacks/tiny-release/dispatches
