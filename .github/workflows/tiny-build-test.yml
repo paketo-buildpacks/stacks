@@ -20,10 +20,10 @@ jobs:
         unzip master.zip
         rm -f master.zip
         sudo bash bats-core-master/install.sh /usr/local
-      
+
     - name: Run BATS
       run: |
         cd tiny/dockerfile/run
         docker build -t tiny .
-        bats -t ./tests/test.bats
-        bats -t ./tests/testapp.bats
+        sudo bats -t ./tests/test.bats
+        sudo bats -t ./tests/testapp.bats
