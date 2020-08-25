@@ -1,0 +1,27 @@
+name: Tiny Build Test
+
+on:
+  push:
+    branches: [ main ]
+    paths: ['tiny/**']
+
+jobs:
+  test-docker-image:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Download BATS
+      run: |
+        curl -L https://github.com/bats-core/bats-core/archive/master.zip --output master.zip
+        unzip master.zip
+        rm -f master.zip
+        bash bats-core-master/install.sh /usr/local
+      
+    - name: Run BATS
+      run: |
+        cd tiny/dockerfile/run
+        docker build -t tiny .
+        bats -t ./tests/test.bats
+        bats -t ./tests/testapp.bats
