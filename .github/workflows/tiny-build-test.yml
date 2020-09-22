@@ -52,6 +52,7 @@ jobs:
         docker push "${BASE_RUN_TAG}"
 
     - name: Build CNB Build Image
+      id: build-build-image
       run: |
         docker build . \
           --file bionic/cnb/build/Dockerfile \
@@ -60,14 +61,19 @@ jobs:
           --build-arg mixins='[]' \
           --tag "${CNB_BUILD_TAG}"
         docker push "${CNB_BUILD_TAG}"
+        
+        echo "::set-output name=cnb_build_sha::$(docker inspect --format='{{index .RepoDigests 0}}' "${CNB_BUILD_TAG}")"
 
     - name: Build CNB Run Image
+      id: build-run-image
       run: |
         docker build . \
           --file tiny/cnb/run/Dockerfile \
           --build-arg base_image="${BASE_RUN_TAG}" \
           --tag "${CNB_RUN_TAG}"
         docker push "${CNB_RUN_TAG}"
+        
+        echo "::set-output name=cnb_run_sha::$(docker inspect --format='{{index .RepoDigests 0}}' "${CNB_RUN_TAG}")"
 
     - name: Setup CNB Tests
       run: |
@@ -102,9 +108,16 @@ jobs:
         curl http://localhost:8080
 
     - name: Trigger Release
+      uses: paketo-buildpacks/github-config/actions/dispatch@main
+      with:
+        repos: paketo-buildpacks/tiny-release
+        token: ${{ secrets.PAKETO_BOT_GITHUB_TOKEN }}
+        event: stack-commit
+        payload: '{"cnb_run_image": "${{ steps.build-run-image.outputs.cnb_run_sha }}", "cnb_build_image": "${{ steps.build-build-image.outputs.cnb_build_sha }}"}'
+
+    - name: Trigger Release
       run: |
-        cnb_run_sha="$(docker inspect --format='{{index .RepoDigests 0}}' "${CNB_RUN_TAG}")"
-        cnb_build_sha="$(docker inspect --format='{{index .RepoDigests 0}}' "${CNB_BUILD_TAG}")"
+        
 
         curl -XPOST -u 'paketo-bot:${{ secrets.PAKETO_BOT_GITHUB_TOKEN }}' \
           -H "Accept: application/vnd.github.everest-preview+json" \
