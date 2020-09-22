@@ -12,12 +12,12 @@ Run Images
 
 **Full**:\
 Build Images
-- `gcr.io/paketo-buildpacks/build:full-cnb-cf`
-- `index.docker.io/paketobuildpacks/build:full-cnb-cf`
+- `gcr.io/paketo-buildpacks/build:full-cnb`
+- `index.docker.io/paketobuildpacks/build:full-cnb`
 
 Run Images
-- `gcr.io/paketo-buildpacks/run:full-cnb-cf`
-- `index.docker.io/paketobuildpacks/run:full-cnb-cf`
+- `gcr.io/paketo-buildpacks/run:full-cnb`
+- `index.docker.io/paketobuildpacks/run:full-cnb`
 
 **Tiny**:\
 Build Images
