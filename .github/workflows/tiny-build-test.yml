@@ -1,8 +1,9 @@
 name: Tiny Build Test
 
-
 on:
   workflow_dispatch: {}
+  repository_dispatch:
+    types: [ new-usn ]
   push:
     branches: [ main ]
     paths:
@@ -10,9 +11,9 @@ on:
     - 'bionic/cnb/build/Dockerfile'
 
 env:
-  BASE_RUN_TAG: gcr.io/cf-buildpacks-releng/build-rc:${{ github.sha }}-tiny
-  CNB_BUILD_TAG: gcr.io/cf-buildpacks-releng/build-rc:${{ github.sha }}-tiny-cnb
-  CNB_RUN_TAG: gcr.io/cf-buildpacks-releng/run-rc:${{ github.sha }}-tiny-cnb
+  RUN_BASE_TAG: paketobuildpacks/run-rc:${{ github.sha }}-tiny
+  RUN_CNB_TAG: paketobuildpacks/run-rc:${{ github.sha }}-tiny-cnb
+  BUILD_CNB_TAG: paketobuildpacks/build-rc:${{ github.sha }}-tiny-cnb
   STACK_ID: io.paketo.stacks.tiny
 
 jobs:
@@ -45,35 +46,46 @@ jobs:
     - name: Configure docker gcloud auth
       run: gcloud auth configure-docker
 
+    - name: Docker login
+      run: |
+        docker login -u ${{ secrets.PAKETO_DOCKER_USER }} --password-stdin \
+          < <(echo "${{ secrets.PAKETO_DOCKER_PASS }}")
+
     - name: Build Base Run Image
       run: |
         cd tiny/dockerfile/run
-        docker build . --tag "${BASE_RUN_TAG}"
-        docker push "${BASE_RUN_TAG}"
+        docker build . --tag "${RUN_BASE_TAG}"
+        docker push "${RUN_BASE_TAG}"
 
     - name: Build CNB Build Image
-      id: build-build-image
+      id: build-cnb-image
       run: |
+        build_base_image="gcr.io/cf-buildpacks-releng/build-rc:base"
+
+        base_build_sha="$(skopeo inspect docker://${build_base_image} | jq .Digest -r)"
+        echo "::set-output name=build_base_image::${build_base_image_sha}"
+
+        build_base_image_tag="$(sudo skopeo inspect docker://{build_base_image} | \
+          jq -r '.RepoTags' | grep "[0-9]" | grep "base" | \
+          grep -v "cnb" | sort | tail -n 1 | sed 's/["|,]//g')"
+
+        echo "::set-output name=build_base_image_tag::${build_base_image_tag}"
+
         docker build . \
           --file bionic/cnb/build/Dockerfile \
-          --build-arg base_image=gcr.io/cf-buildpacks-releng/build-rc:base \
+          --build-arg base_image=${build_base_image} \
           --build-arg stack_id="${STACK_ID}" \
           --build-arg mixins='[]' \
-          --tag "${CNB_BUILD_TAG}"
-        docker push "${CNB_BUILD_TAG}"
-        
-        echo "::set-output name=cnb_build_sha::$(docker inspect --format='{{index .RepoDigests 0}}' "${CNB_BUILD_TAG}")"
+          --tag "${BUILD_CNB_TAG}"
+        docker push "${BUILD_CNB_TAG}"
 
     - name: Build CNB Run Image
-      id: build-run-image
       run: |
         docker build . \
           --file tiny/cnb/run/Dockerfile \
-          --build-arg base_image="${BASE_RUN_TAG}" \
-          --tag "${CNB_RUN_TAG}"
-        docker push "${CNB_RUN_TAG}"
-        
-        echo "::set-output name=cnb_run_sha::$(docker inspect --format='{{index .RepoDigests 0}}' "${CNB_RUN_TAG}")"
+          --build-arg base_image="${RUN_BASE_TAG}" \
+          --tag "${RUN_CNB_TAG}"
+        docker push "${RUN_CNB_TAG}"
 
     - name: Setup CNB Tests
       run: |
@@ -98,8 +110,8 @@ jobs:
 
           [stack]
           id = "${STACK_ID}"
-          build-image = "${CNB_BUILD_TAG}"
-          run-image = "${CNB_RUN_TAG}"
+          build-image = "${BUILD_CNB_TAG}"
+          run-image = "${BUILD_CNB_TAG}"
         EOF
 
         pack create-builder test-builder -c /tmp/test-builder.toml
@@ -107,10 +119,28 @@ jobs:
         docker run -d -p 8080:8080 test-app
         curl http://localhost:8080
 
+    - name: Get Image SHAs
+      id: image-shas
+      run: |
+        run_base_sha="$(docker inspect --format='{{index .RepoDigests 0}}' "${RUN_BASE_TAG}")"
+        run_cnb_sha="$(docker inspect --format='{{index .RepoDigests 0}}' "${RUN_CNB_TAG}")"
+        build_cnb_sha="$(docker inspect --format='{{index .RepoDigests 0}}' "${BUILD_CNB_TAG}")"
+
+        echo "::set-output name=run_base_sha::${run_base_sha}"
+        echo "::set-output name=run_cnb_sha::${run_cnb_sha}"
+        echo "::set-output name=build_cnb_sha::${build_cnb_sha}"
+
     - name: Trigger Release
       uses: paketo-buildpacks/github-config/actions/dispatch@main
       with:
         repos: paketo-buildpacks/tiny-release
         token: ${{ secrets.PAKETO_BOT_GITHUB_TOKEN }}
-        event: stack-commit
-        payload: '{"cnb_run_image": "${{ steps.build-run-image.outputs.cnb_run_sha }}", "cnb_build_image": "${{ steps.build-build-image.outputs.cnb_build_sha }}"}'
+        event: new-stack-rc
+        payload: |
+          {
+            "run_base_image": "${{ steps.image-shas.outputs.run_base_sha }}",
+            "run_cnb_image": "${{ steps.image-shas.outputs.run_cnb_sha }}",
+            "build_base_image": "${{ steps.build-cnb-image.outputs.build_base_image }}",
+            "build_base_image_tag": "${{ steps.build-cnb-image.outputs.build_base_image_tag }}",
+            "build_cnb_image": "${{ steps.image-shas.outputs.build_cnb_sha }}"
+          }
