@@ -1,0 +1,24 @@
+name: Test Release Notes
+on:
+  workflow_dispatch: {}
+  push:
+    branches: [ main ]
+    paths:
+    - 'actions/release-notes/release-notes-generator/**'
+
+jobs:
+  test-release-notes:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Setup Go
+      uses: actions/setup-go@v1
+      with:
+        go-version: 1.15
+
+    - name: Run Tests
+      run: |
+        cd actions/release-notes/release-notes-generator
+        go test ./...

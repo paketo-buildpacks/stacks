@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+main() {
+  notes="$(/release-notes-generator "$@")"
+
+  notes="${notes//'%'/'%25'}"
+  notes="${notes//$'\n'/'%0A'}"
+  notes="${notes//$'\r'/'%0D'}"
+
+  echo "::set-output name=release_body::${notes}"
+}
+
+main "${@:-}"

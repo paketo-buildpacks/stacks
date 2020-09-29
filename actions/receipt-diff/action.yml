@@ -1,0 +1,32 @@
+name: 'Generate Receipt Diffs'
+
+description: |
+  Generate receipt diffs for a stack
+
+outputs:
+  run_diff:
+    description: Run receipt diff
+  build_diff:
+    description: Build receipt diff
+
+inputs:
+  repo:
+    description: 'Repository that will have draft release reset'
+    required: true
+  user:
+    description: 'User for private repositories'
+    required: false
+  token:
+    description: 'Token for private repositories'
+    required: false
+
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  args:
+  - "--repo"
+  - ${{ inputs.repo }}
+  - "--user"
+  - ${{ inputs.user }}
+  - "--token"
+  - ${{ inputs.token }}

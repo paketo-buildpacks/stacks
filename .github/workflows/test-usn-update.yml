@@ -1,0 +1,24 @@
+name: Test USN Update
+on:
+  workflow_dispatch: {}
+  push:
+    branches: [ main ]
+    paths:
+    - 'actions/usn-update/entrypoint/**'
+
+jobs:
+  test-usn-update:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Setup Go
+      uses: actions/setup-go@v1
+      with:
+        go-version: 1.15
+
+    - name: Run Tests
+      run: |
+        cd actions/usn-update/entrypoint
+        go test ./...

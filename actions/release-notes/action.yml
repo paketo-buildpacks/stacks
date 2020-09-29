@@ -1,0 +1,71 @@
+name: 'Create Stack Release Notes'
+
+description: |
+  Creates release notes for a stack
+
+outputs:
+  release_body:
+    description: Generated detailed release notes for the stack
+
+inputs:
+  build_base_image:
+    description: 'Build base image'
+    required: true
+  build_base_image_tag:
+    description: 'Build base image tag'
+    default: ""
+    required: false
+  build_cnb_image:
+    description: 'Build CNB image'
+    required: true
+  run_base_image:
+    description: 'Run base image'
+    required: true
+  run_cnb_image:
+    description: 'Run CNB image'
+    required: true
+  build_receipt_diff:
+    description: 'Build receipt diff from previous release'
+    required: false
+  run_receipt_diff:
+    description: 'Run receipt diff from previous release'
+    required: false
+  relevant_usns:
+    description: 'Path to relevant USNs'
+    required: true
+  all_usns:
+    description: 'Path to all USNs'
+    required: true
+  release_version:
+    description: 'Release version'
+    required: true
+  stack:
+    description: 'Stack'
+    required: true
+
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  args:
+  - "--build-base-image"
+  - ${{ inputs.build_base_image }}
+  - "--build-base-image-tag"
+  - ${{ inputs.build_base_image_tag }}
+  - "--build-cnb-image"
+  - ${{ inputs.build_cnb_image }}
+  - "--run-base-image"
+  - ${{ inputs.run_base_image }}
+  - "--run-cnb-image"
+  - ${{ inputs.run_cnb_image }}
+  - "--build-receipt-diff"
+  - ${{ inputs.build_receipt_diff }}
+  - "--run-receipt-diff"
+  - ${{ inputs.run_receipt_diff }}
+  - "--relevant-usns"
+  - ${{ inputs.relevant_usns }}
+  - "--all-usns"
+  - ${{ inputs.all_usns }}
+  - "--release-version"
+  - ${{ inputs.release_version }}
+  - "--stack"
+  - ${{ inputs.stack }}

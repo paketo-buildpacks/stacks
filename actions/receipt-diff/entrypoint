@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+repo=
+user=
+token=
+
+parse_args() {
+  while test $# -gt 0; do
+    case $1 in
+      --repo)
+        repo=$2
+        shift
+        ;;
+      --user)
+        user=$2
+        shift
+        ;;
+      --token)
+        token=$2
+        shift
+        ;;
+      *)
+        echo >&2 "Invalid argument: $1"
+        exit 1
+        ;;
+    esac
+    shift
+  done
+
+  if [[ "${repo}" == "" ]]; then
+    exit 1
+  fi
+}
+
+generate_diff() {
+  prev_tag=$1
+  repo=$2
+  receipt=$3
+
+  diff="$(git -C "${repo}" diff "${prev_tag}" "${receipt}" | grep -v "^---" | grep -v "^+++" | grep -e "^+" -e "^-" || true)"
+  echo "${diff}"
+}
+
+main() {
+  parse_args "$@"
+
+  repo_location="/tmp/repo"
+  git clone "https://${user}:${token}@github.com/${repo}" "${repo_location}"
+  previous_tag="$(git -C "${repo_location}" tag --sort version:refname | tail -n 1)"
+
+  run_diff="$(generate_diff "${previous_tag}" "${repo_location}" run-receipt)"
+  run_diff="${run_diff//'%'/'%25'}"
+  run_diff="${run_diff//$'\n'/'%0A'}"
+  run_diff="${run_diff//$'\r'/'%0D'}"
+  echo "::set-output name=run_diff::${run_diff}"
+
+  build_diff="$(generate_diff "${previous_tag}" "${repo_location}" build-receipt)"
+  build_diff="${build_diff//'%'/'%25'}"
+  build_diff="${build_diff//$'\n'/'%0A'}"
+  build_diff="${build_diff//$'\r'/'%0D'}"
+  echo "::set-output name=build_diff::${build_diff}"
+}
+
+main "${@:-}"
