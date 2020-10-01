@@ -111,7 +111,7 @@ jobs:
           [stack]
           id = "${STACK_ID}"
           build-image = "${BUILD_CNB_TAG}"
-          run-image = "${BUILD_CNB_TAG}"
+          run-image = "${RUN_CNB_TAG}"
         EOF
 
         pack create-builder test-builder -c /tmp/test-builder.toml
