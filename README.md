@@ -7,6 +7,7 @@ Build Images
 
 Run Images
 - `index.docker.io/paketobuildpacks/run:base-cnb` 
+- `gcr.io/paketo-buildpacks/run:base-cnb`
 
 **Full**:\
 Build Images
@@ -14,6 +15,7 @@ Build Images
 
 Run Images
 - `index.docker.io/paketobuildpacks/run:full-cnb`
+- `gcr.io/paketo-buildpacks/run:full-cnb`
 
 **Tiny**:\
 Build Images
@@ -21,6 +23,7 @@ Build Images
 
 Run Images
 - `index.docker.io/paketobuildpacks/run:tiny-cnb`
+- `gcr.io/paketo-buildpacks/run:tiny-cnb`
 
 ## Use Cases
 
