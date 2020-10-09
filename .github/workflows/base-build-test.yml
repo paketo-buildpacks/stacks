@@ -1,41 +1,29 @@
-name: Tiny Build Test
+name: Base Build Test
 
 on:
   workflow_dispatch: {}
   repository_dispatch:
-    types: [ new-tiny-usn ]
+    types: [ new-base-usn ]
   push:
     branches: [ main ]
     paths:
-    - 'tiny/**'
-    - 'bionic/cnb/build/Dockerfile'
+    - 'bionic/**'
+    - 'arch/x64_64/**'
+    - 'packages/base/**'
 
 env:
-  RUN_BASE_TAG: paketobuildpacks/run-rc:${{ github.sha }}-tiny
-  RUN_CNB_TAG: paketobuildpacks/run-rc:${{ github.sha }}-tiny-cnb
-  BUILD_CNB_TAG: paketobuildpacks/build-rc:${{ github.sha }}-tiny-cnb
-  STACK_ID: io.paketo.stacks.tiny
+  BUILD_BASE_TAG: paketobuildpacks/build-rc:${{ github.sha }}-base
+  BUILD_CNB_TAG: paketobuildpacks/build-rc:${{ github.sha }}-base-cnb
+  RUN_BASE_TAG: paketobuildpacks/run-rc:${{ github.sha }}-base
+  RUN_CNB_TAG: paketobuildpacks/run-rc:${{ github.sha }}-base-cnb
+  STACK_ID: io.buildpacks.stacks.bionic
 
 jobs:
-  test-docker-image:
+  base-build-test:
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
-
-    - name: Download BATS
-      run: |
-        curl -sL https://github.com/bats-core/bats-core/archive/master.zip --output master.zip
-        unzip master.zip
-        rm -f master.zip
-        sudo bash bats-core-master/install.sh /usr/local
-
-    - name: Run BATS
-      run: |
-        cd tiny/dockerfile/run
-        docker build -t tiny .
-        sudo bats -t ./tests/test.bats
-        sudo bats -t ./tests/testapp.bats
 
     - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
       with:
@@ -51,41 +39,14 @@ jobs:
         docker login -u ${{ secrets.PAKETO_DOCKER_USER }} --password-stdin \
           < <(echo "${{ secrets.PAKETO_DOCKER_PASS }}")
 
-    - name: Build Base Run Image
+    - name: Build and push images
       run: |
-        cd tiny/dockerfile/run
-        docker build . --tag "${RUN_BASE_TAG}"
-        docker push "${RUN_BASE_TAG}"
-
-    - name: Build CNB Build Image
-      id: build-cnb-image
-      run: |
-        build_base_image="gcr.io/cf-buildpacks-releng/build-rc:base"
-
-        base_build_sha="$(skopeo inspect docker://${build_base_image} | jq .Digest -r)"
-        echo "::set-output name=build_base_image::${build_base_image_sha}"
-
-        build_base_image_tag="$(sudo skopeo inspect docker://{build_base_image} | \
-          jq -r '.RepoTags' | grep "[0-9]" | grep "base" | \
-          grep -v "cnb" | sort | tail -n 1 | sed 's/["|,]//g')"
-
-        echo "::set-output name=build_base_image_tag::${build_base_image_tag}"
-
-        docker build . \
-          --file bionic/cnb/build/Dockerfile \
-          --build-arg base_image=${build_base_image} \
-          --build-arg stack_id="${STACK_ID}" \
-          --build-arg mixins='[]' \
-          --tag "${BUILD_CNB_TAG}"
-        docker push "${BUILD_CNB_TAG}"
-
-    - name: Build CNB Run Image
-      run: |
-        docker build . \
-          --file tiny/cnb/run/Dockerfile \
-          --build-arg base_image="${RUN_BASE_TAG}" \
-          --tag "${RUN_CNB_TAG}"
-        docker push "${RUN_CNB_TAG}"
+        ./scripts/create-bionic-stack.sh \
+          -s base \
+          -b paketobuildpacks/build-rc \
+          -r paketobuildpacks/run-rc \
+          -v ${{ github.sha }} \
+          --publish
 
     - name: Setup CNB Tests
       run: |
@@ -122,25 +83,26 @@ jobs:
     - name: Get Image SHAs
       id: image-shas
       run: |
+        build_base_sha="$(docker inspect --format='{{index .RepoDigests 0}}' "${BUILD_BASE_TAG}")"
+        build_cnb_sha="$(docker inspect --format='{{index .RepoDigests 0}}' "${BUILD_CNB_TAG}")"
         run_base_sha="$(docker inspect --format='{{index .RepoDigests 0}}' "${RUN_BASE_TAG}")"
         run_cnb_sha="$(docker inspect --format='{{index .RepoDigests 0}}' "${RUN_CNB_TAG}")"
-        build_cnb_sha="$(docker inspect --format='{{index .RepoDigests 0}}' "${BUILD_CNB_TAG}")"
 
+        echo "::set-output name=build_base_sha::${build_base_sha}"
+        echo "::set-output name=build_cnb_sha::${build_cnb_sha}"
         echo "::set-output name=run_base_sha::${run_base_sha}"
         echo "::set-output name=run_cnb_sha::${run_cnb_sha}"
-        echo "::set-output name=build_cnb_sha::${build_cnb_sha}"
 
     - name: Trigger Release
       uses: paketo-buildpacks/github-config/actions/dispatch@main
       with:
-        repos: paketo-buildpacks/tiny-release
+        repos: paketo-buildpacks/base-release
         token: ${{ secrets.PAKETO_BOT_GITHUB_TOKEN }}
         event: new-stack-rc
         payload: |
           {
             "run_base_image": "${{ steps.image-shas.outputs.run_base_sha }}",
             "run_cnb_image": "${{ steps.image-shas.outputs.run_cnb_sha }}",
-            "build_base_image": "${{ steps.build-cnb-image.outputs.build_base_image }}",
-            "build_base_image_tag": "${{ steps.build-cnb-image.outputs.build_base_image_tag }}",
+            "build_base_image": "${{ steps.image-shas.outputs.build_base_sha }}",
             "build_cnb_image": "${{ steps.image-shas.outputs.build_cnb_sha }}"
           }
