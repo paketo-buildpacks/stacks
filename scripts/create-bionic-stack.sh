@@ -76,6 +76,7 @@ get_mixins() {
 publish() {
   while [ $# -gt 0 ]; do
     docker push "$1"
+    shift
   done
 }
 
