@@ -1,5 +1,6 @@
 ca-certificates
 libssl1.1
 libyaml-0-2
+locales
 openssl
-zlib1g
+zlib1g 
