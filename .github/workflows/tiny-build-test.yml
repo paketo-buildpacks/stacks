@@ -67,7 +67,7 @@ jobs:
 
         build_base_image_tag="$(sudo skopeo inspect docker://{build_base_image} | \
           jq -r '.RepoTags' | grep "[0-9]" | grep "base" | \
-          grep -v "cnb" | sort | tail -n 1 | sed 's/["|,]//g')"
+          grep -v "cnb" | sort | tail -n 1 | sed 's/["|,| ]//g')"
 
         echo "::set-output name=build_base_image_tag::${build_base_image_tag}"
 
