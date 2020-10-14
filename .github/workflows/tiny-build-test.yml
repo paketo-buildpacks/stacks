@@ -62,10 +62,10 @@ jobs:
       run: |
         build_base_image="index.docker.io/paketobuildpacks/build:base"
 
-        base_build_sha="$(skopeo inspect docker://${build_base_image} | jq .Digest -r)"
-        echo "::set-output name=build_base_image::${base_build_sha}"
+        build_base_sha="$(docker inspect --format='{{index .RepoDigests 0}}' "${build_base_image}")"
+        echo "::set-output name=build_base_image::${build_base_sha}"
 
-        build_base_image_tag="$(sudo skopeo inspect docker://{build_base_image} | \
+        build_base_image_tag="$(sudo skopeo inspect docker://${build_base_image} | \
           jq -r '.RepoTags' | grep "[0-9]" | grep "base" | \
           grep -v "cnb" | sort | tail -n 1 | sed 's/["|,| ]//g')"
 
