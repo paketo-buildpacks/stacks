@@ -60,7 +60,7 @@ jobs:
     - name: Build CNB Build Image
       id: build-cnb-image
       run: |
-        build_base_image="gcr.io/cf-buildpacks-releng/build-rc:base"
+        build_base_image="index.docker.io/paketobuildpacks/build:base"
 
         base_build_sha="$(skopeo inspect docker://${build_base_image} | jq .Digest -r)"
         echo "::set-output name=build_base_image::${base_build_sha}"
