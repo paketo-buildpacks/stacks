@@ -63,7 +63,7 @@ jobs:
         build_base_image="gcr.io/cf-buildpacks-releng/build-rc:base"
 
         base_build_sha="$(skopeo inspect docker://${build_base_image} | jq .Digest -r)"
-        echo "::set-output name=build_base_image::${build_base_image_sha}"
+        echo "::set-output name=build_base_image::${base_build_sha}"
 
         build_base_image_tag="$(sudo skopeo inspect docker://{build_base_image} | \
           jq -r '.RepoTags' | grep "[0-9]" | grep "base" | \
