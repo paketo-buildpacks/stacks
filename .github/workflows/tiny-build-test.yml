@@ -3,7 +3,7 @@ name: Tiny Build Test
 on:
   workflow_dispatch: {}
   repository_dispatch:
-    types: [ new-tiny-usn ]
+    types: [ new-tiny-usn, new-base-image-release ]
   push:
     branches: [ main ]
     paths:
