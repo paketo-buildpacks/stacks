@@ -61,6 +61,7 @@ jobs:
       id: build-cnb-image
       run: |
         build_base_image="index.docker.io/paketobuildpacks/build:base"
+        docker pull "${build_base_image}"
 
         build_base_sha="$(docker inspect --format='{{index .RepoDigests 0}}' "${build_base_image}")"
         echo "::set-output name=build_base_image::${build_base_sha}"
