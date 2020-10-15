@@ -1,4 +1,4 @@
-name: Base Build Test
+name: Full Build Test
 
 on:
   workflow_dispatch: {}
@@ -19,7 +19,7 @@ env:
   STACK_ID: io.buildpacks.stacks.bionic
 
 jobs:
-  base-build-test:
+  full-build-test:
     runs-on: ubuntu-latest
 
     steps:
