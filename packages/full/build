@@ -1,4 +1,5 @@
 autoconf
+automake
 bison
 build-essential
 bzr
