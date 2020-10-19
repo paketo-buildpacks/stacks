@@ -2,16 +2,17 @@ package main_test
 
 import (
 	"encoding/json"
-	. "github.com/paketo-buildpacks/stack-usns/actions/usn-monitor/entrypoint"
-	"github.com/sclevine/spec"
-	"github.com/sclevine/spec/report"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"testing"
+
+	. "github.com/paketo-buildpacks/stack-usns/actions/usn-monitor/entrypoint"
+	"github.com/sclevine/spec"
+	"github.com/sclevine/spec/report"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestEntrypoint(t *testing.T) {
@@ -113,6 +114,7 @@ func testEntrypoint(t *testing.T, when spec.G, it spec.S) {
 		assert.Contains(actualUSNArray, relevantBuildUSN)
 		assert.Contains(actualUSNArray, relevantRunUSN)
 	})
+
 	it("omits duplicate relevant USNs", func() {
 		allUSNs := []USN{
 			{

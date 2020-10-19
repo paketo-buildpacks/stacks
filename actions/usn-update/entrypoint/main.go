@@ -24,8 +24,8 @@ type CVE struct {
 }
 
 type RecordedUSN struct {
-	Title   string
-	Release string
+	Title   string `json:"title"`
+	Release string `json:"release"`
 }
 
 func main() {
@@ -56,7 +56,6 @@ func main() {
 }
 
 func recordRelevantUSNs(buildReceiptPath, runReceiptPath, fullUSNListPath, relevantUSNListPath string) error {
-
 	allUSNs, err := getUSNs(fullUSNListPath)
 	if err != nil {
 		return fmt.Errorf("failed to get full USN list: %w", err)
