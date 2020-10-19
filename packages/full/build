@@ -142,6 +142,7 @@ libterm-ui-perl
 libtiffxx5
 libtirpc-dev
 libtirpc1:amd64
+libtool
 libunwind8-dev
 libunwind8:amd64
 libustr-1.0-1
