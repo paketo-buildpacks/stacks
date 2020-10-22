@@ -122,7 +122,7 @@ func getLongestItemLength(receiptDiff string, columnNumber int) int {
 	longestItemLength := 0
 	for _, line := range strings.Split(receiptDiff, "\n") {
 		fields := strings.Fields(line)
-		if len(fields) < 4{
+		if len(fields) < 4 {
 			continue
 		}
 		packageName := fields[columnNumber]
@@ -143,7 +143,7 @@ func formatReceiptDiff(receiptDiff string) string {
 	var output string
 	for _, line := range strings.Split(receiptDiff, "\n") {
 		fields := strings.Fields(line)
-		if len(fields) < 4{
+		if len(fields) < 4 {
 			continue
 		}
 
@@ -229,7 +229,7 @@ func getNewPackages(receiptDiff string) []string {
 
 	var pkgs []string
 	for _, match := range pkgMatches {
-		pkgs = append(pkgs, match[1])
+		pkgs = append(pkgs, strings.Split(match[1], ":")[0])
 	}
 
 	return pkgs

@@ -58,6 +58,10 @@ func testReleaseNotesGenerator(t *testing.T, when spec.G, it spec.S) {
 				Title:   "USN-4498-1: Loofah vulnerability",
 				Release: "unreleased",
 			},
+			{
+				Title:   "USN-4593-1: FreeType vulnerability",
+				Release: "unreleased",
+			},
 		}
 		relevantUsnArrayJson, err = json.Marshal(relevantUSNArray)
 		require.NoError(err)
@@ -66,6 +70,18 @@ func testReleaseNotesGenerator(t *testing.T, when spec.G, it spec.S) {
 		require.NoError(err)
 
 		allUSNArray := []USN{
+			{
+				Title: "USN-4593-1: FreeType vulnerability",
+				Link:  "https://ubuntu.com/security/notices/USN-4593-1",
+				CveArray: []CVE{
+					{
+						Title:       "CVE-2020-15999",
+						Link:        "https://people.canonical.com/~ubuntu-security/cve/CVE-2020-15999",
+						Description: "A buffer overflow was discovered in Load_SBit_Png.",
+					},
+				},
+				AffectedPackages: []string{"libfreetype6"},
+			},
 			{
 				Title: "USN-4504-1: OpenSSL vulnerabilities",
 				Link:  "https://ubuntu.com/security/notices/USN-4504-1",
@@ -166,7 +182,9 @@ func testReleaseNotesGenerator(t *testing.T, when spec.G, it spec.S) {
 			buildReceiptDiff := `-ii  ruby-loofah          1.6.10ubuntu0.1  amd64  some description
 +ii  ruby-loofah       1.6.12ubuntu0.1      all    some longer description
 -ii  ruby-loofaher     1.6.0   amd64    some description
-+ii  ruby-loofaher     1.6.12Trusty0.1.23   amd64   some description`
++ii  ruby-loofaher     1.6.12Trusty0.1.23   amd64   some description
+-ii  libfreetype6:amd64      2.8.1-2ubuntu2      amd64  some other description
++ii  libfreetype6:amd64      2.8.1-2ubuntu2.1    amd64  some other description`
 
 			runReceiptDiff := `-ii  ruby-loofah      1.6.10ubuntu0.1  amd64
 +ii  ruby-loofah      1.6.12ubuntu0.1       amd64
@@ -198,8 +216,9 @@ func testReleaseNotesGenerator(t *testing.T, when spec.G, it spec.S) {
 			err = json.Unmarshal(relevantUSNsContent, &updatedUSNs)
 			require.NoError(err)
 
-			assert.Len(updatedUSNs, 1)
+			assert.Len(updatedUSNs, 2)
 			assert.Equal(releaseVersion, updatedUSNs[0].Release)
+			assert.Equal(releaseVersion, updatedUSNs[1].Release)
 		})
 	})
 
