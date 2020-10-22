@@ -187,7 +187,7 @@ func recordUSNs(usns []USN, usnListPath string) error {
 		recordedUSNs = append([]RecordedUSN{usn}, recordedUSNs...)
 	}
 
-	usnBytes, err := json.Marshal(recordedUSNs)
+	usnBytes, err := json.MarshalIndent(recordedUSNs, "", "    ")
 	if err != nil {
 		return fmt.Errorf("failed to marshal usns: %w", err)
 	}

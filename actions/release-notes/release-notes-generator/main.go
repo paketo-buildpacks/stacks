@@ -205,7 +205,7 @@ func documentUSNs(relevantUSNsPath, allUSNsPath, buildReceiptDiff, runReceiptDif
 }
 
 func updateReleasedUSNs(usns []RecordedUSN, usnPath string) error {
-	usnBytes, err := json.Marshal(usns)
+	usnBytes, err := json.MarshalIndent(usns, "", "    ")
 	if err != nil {
 		return fmt.Errorf("error marshalling relevant USNs: %w", err)
 	}
