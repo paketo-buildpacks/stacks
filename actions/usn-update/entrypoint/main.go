@@ -161,7 +161,7 @@ func getPkgList(receiptPath string) ([]string, error) {
 
 	var finalPkgList []string
 	for _, p := range pkgList {
-		finalPkgList = append(finalPkgList, p[2])
+		finalPkgList = append(finalPkgList, strings.Split(p[2], ":")[0])
 	}
 
 	return finalPkgList, nil
