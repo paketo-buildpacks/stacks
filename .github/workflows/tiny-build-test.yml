@@ -2,6 +2,9 @@ name: Tiny Build Test
 
 on:
   workflow_dispatch: {}
+  schedule:
+    # Every Sunday at 1:00 AM
+    - cron: '0 1 * * 0'
   repository_dispatch:
     types: [ new-tiny-usn, new-base-image-release ]
   push:
