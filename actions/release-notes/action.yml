@@ -10,7 +10,7 @@ outputs:
 inputs:
   build_base_image:
     description: 'Build base image'
-    required: true
+    required: false
   build_base_image_tag:
     description: 'Build base image tag'
     default: ""
@@ -20,7 +20,7 @@ inputs:
     required: true
   run_base_image:
     description: 'Run base image'
-    required: true
+    required: false
   run_cnb_image:
     description: 'Run CNB image'
     required: true

@@ -57,7 +57,7 @@ func main() {
 
 	flag.Parse()
 
-	if buildCNBImage == "" || runBaseImage == "" || runCNBImage == "" || relevantUSNs == "" || allUSNs == "" ||
+	if buildCNBImage == "" || runCNBImage == "" || relevantUSNs == "" || allUSNs == "" ||
 		releaseVersion == "" || stack == "" {
 		flag.Usage()
 		os.Exit(1)
@@ -88,17 +88,24 @@ func documentDigests(runBaseImage, runCNBImage, buildBaseImage, buildCNBImage, r
 		"### Runtime Base Images\n\n" +
 		"#### For CNB Builds:\n" +
 		fmt.Sprintf("- Tag: **`%s`**\n", runCNBImageTag) +
-		fmt.Sprintf("- Digest: `%s`\n\n", runCNBImage) +
-		"#### Source Image (e.g., for Dockerfile builds):\n" +
-		fmt.Sprintf("- Tag: **`%s`**\n", runBaseImageTag) +
-		fmt.Sprintf("- Digest: `%s`\n\n", runBaseImage) +
-		"### Build-time Base Images\n\n" +
+		fmt.Sprintf("- Digest: `%s`\n\n", runCNBImage)
+
+	if runBaseImage != "" {
+		digestNotes += "#### Source Image (e.g., for Dockerfile builds):\n" +
+			fmt.Sprintf("- Tag: **`%s`**\n", runBaseImageTag) +
+			fmt.Sprintf("- Digest: `%s`\n\n", runBaseImage)
+	}
+
+	digestNotes += "### Build-time Base Images\n\n" +
 		"#### For CNB Builds:\n" +
 		fmt.Sprintf("- Tag: **`%s`**\n", buildCNBImageTag) +
-		fmt.Sprintf("- Digest: `%s`\n\n", buildCNBImage) +
-		"#### Source Image (e.g., for Dockerfile builds):\n" +
-		fmt.Sprintf("- Tag: **`%s`**\n", buildBaseImageTag) +
-		fmt.Sprintf("- Digest: `%s`", buildBaseImage)
+		fmt.Sprintf("- Digest: `%s`", buildCNBImage)
+
+	if buildBaseImage != "" {
+		digestNotes += "\n\n#### Source Image (e.g., for Dockerfile builds):\n" +
+			fmt.Sprintf("- Tag: **`%s`**\n", buildBaseImageTag) +
+			fmt.Sprintf("- Digest: `%s`", buildBaseImage)
+	}
 
 	return digestNotes
 }

@@ -19,28 +19,30 @@ func TestReleaseNotesGenerator(t *testing.T) {
 
 func testReleaseNotesGenerator(t *testing.T, when spec.G, it spec.S) {
 	var (
-		cliPath                    string
-		relevantUSNs               *os.File
-		allUSNs                    *os.File
-		fullReleaseNotes           string
-		releaseNotesWithoutRunDiff string
-		releaseNotesWithoutUSNs    string
-		relevantUsnArrayJson       []byte
-		require                    = require.New(t)
-		assert                     = assert.New(t)
+		cliPath                       string
+		relevantUSNs                  *os.File
+		allUSNs                       *os.File
+		fullReleaseNotes              string
+		releaseNotesWithoutRunDiff    string
+		releaseNotesWithoutUSNs       string
+		releaseNotesWithoutBaseImages string
+		relevantUsnArrayJson          []byte
+		require                       = require.New(t)
+		assert                        = assert.New(t)
 	)
 
 	const (
-		fullReleaseNotesFilePath           = "testdata/full_release_notes.md"
-		releaseNotesWithoutRunDiffFilePath = "testdata/release_notes_without_run_diff.md"
-		releaseNotesWithoutUSNsFilePath    = "testdata/release_notes_without_usns.md"
-		buildBaseImage                     = "some-registry/build@sha256:some-base-sha"
-		buildBaseImageTag                  = "some-registry/build:1.1.0-base"
-		buildCNBImage                      = "some-registry/build@sha256:some-cnb-sha"
-		runBaseImage                       = "some-registry/run@sha256:some-base-sha"
-		runCNBImage                        = "some-registry/run@sha256:some-cnb-sha"
-		releaseVersion                     = "1.0"
-		stack                              = "tiny"
+		fullReleaseNotesFilePath              = "testdata/full_release_notes.md"
+		releaseNotesWithoutRunDiffFilePath    = "testdata/release_notes_without_run_diff.md"
+		releaseNotesWithoutUSNsFilePath       = "testdata/release_notes_without_usns.md"
+		releaseNotesWithoutBaseImagesFilePath = "testdata/release_notes_without_base_images.md"
+		buildBaseImage                        = "some-registry/build@sha256:some-base-sha"
+		buildBaseImageTag                     = "some-registry/build:1.1.0-base"
+		buildCNBImage                         = "some-registry/build@sha256:some-cnb-sha"
+		runBaseImage                          = "some-registry/run@sha256:some-base-sha"
+		runCNBImage                           = "some-registry/run@sha256:some-cnb-sha"
+		releaseVersion                        = "1.0"
+		stack                                 = "tiny"
 	)
 
 	it.Before(func() {
@@ -163,6 +165,11 @@ func testReleaseNotesGenerator(t *testing.T, when spec.G, it spec.S) {
 
 		releaseNotesWithoutUSNs = string(releaseNotesWithoutUSNsBytes)
 
+		releaseNotesWithoutBaseImagesBytes, err := ioutil.ReadFile(releaseNotesWithoutBaseImagesFilePath)
+		require.NoError(err)
+
+		releaseNotesWithoutBaseImages = string(releaseNotesWithoutBaseImagesBytes)
+
 		goBuild := exec.Command("go", "build", "-o", cliPath, ".")
 		output, err := goBuild.CombinedOutput()
 		require.NoError(err, "failed to build CLI: %s", string(output))
@@ -278,6 +285,31 @@ func testReleaseNotesGenerator(t *testing.T, when spec.G, it spec.S) {
 			require.NoError(err, string(output))
 
 			assert.Equal(releaseNotesWithoutUSNs, string(output))
+		})
+	})
+
+	when("there are no base images", func() {
+		it("generates release notes without base image refs", func() {
+			_, err := relevantUSNs.Write(relevantUsnArrayJson)
+			require.NoError(err)
+
+			cmd := exec.Command(cliPath,
+				"--build-base-image", "",
+				"--build-cnb-image", buildCNBImage,
+				"--run-base-image", "",
+				"--run-cnb-image", runCNBImage,
+				"--build-receipt-diff", "",
+				"--run-receipt-diff", "",
+				"--relevant-usns", relevantUSNs.Name(),
+				"--all-usns", allUSNs.Name(),
+				"--release-version", releaseVersion,
+				"--stack", stack,
+				"--build-base-image-tag", buildBaseImageTag,
+			)
+			output, err := cmd.CombinedOutput()
+			require.NoError(err, string(output))
+
+			assert.Equal(releaseNotesWithoutBaseImages, string(output))
 		})
 	})
 }
