@@ -54,14 +54,8 @@ jobs:
         docker login -u ${{ secrets.PAKETO_DOCKER_USER }} --password-stdin \
           < <(echo "${{ secrets.PAKETO_DOCKER_PASS }}")
 
-    - name: Build Base Run Image
-      run: |
-        cd tiny/dockerfile/run
-        docker build . --tag "${RUN_BASE_TAG}"
-        docker push "${RUN_BASE_TAG}"
-
-    - name: Build CNB Build Image
-      id: build-cnb-image
+    - name: Build and push images
+      id: build-cnb-images
       run: |
         build_base_image="index.docker.io/paketobuildpacks/build:base"
         docker pull "${build_base_image}"
@@ -75,21 +69,12 @@ jobs:
 
         echo "::set-output name=build_base_image_tag::${build_base_image_tag}"
 
-        docker build . \
-          --file bionic/cnb/build/Dockerfile \
-          --build-arg base_image=${build_base_image} \
-          --build-arg stack_id="${STACK_ID}" \
-          --build-arg mixins='[]' \
-          --tag "${BUILD_CNB_TAG}"
-        docker push "${BUILD_CNB_TAG}"
-
-    - name: Build CNB Run Image
-      run: |
-        docker build . \
-          --file tiny/cnb/run/Dockerfile \
-          --build-arg base_image="${RUN_BASE_TAG}" \
-          --tag "${RUN_CNB_TAG}"
-        docker push "${RUN_CNB_TAG}"
+        ./scripts/create-tiny-stack.sh \
+          -v ${{ github.sha }} \
+          -b paketobuildpacks/build-rc \
+          -r paketobuildpacks/run-rc \
+          -i ${build_base_image} \
+          --publish
 
     - name: Setup CNB Tests
       run: |
@@ -144,7 +129,7 @@ jobs:
           {
             "run_base_image": "${{ steps.image-shas.outputs.run_base_sha }}",
             "run_cnb_image": "${{ steps.image-shas.outputs.run_cnb_sha }}",
-            "build_base_image": "${{ steps.build-cnb-image.outputs.build_base_image }}",
-            "build_base_image_tag": "${{ steps.build-cnb-image.outputs.build_base_image_tag }}",
+            "build_base_image": "${{ steps.build-cnb-images.outputs.build_base_image }}",
+            "build_base_image_tag": "${{ steps.build-cnb-images.outputs.build_base_image_tag }}",
             "build_cnb_image": "${{ steps.image-shas.outputs.build_cnb_sha }}"
           }

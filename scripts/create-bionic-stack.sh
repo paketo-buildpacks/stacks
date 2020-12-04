@@ -40,8 +40,11 @@ build_base_image() {
 build_cnb_image() {
   tag=$1
   base_image=$2
-  mixins=$3
-  image_name=$4
+  description=$3
+  mixins=$4
+  image_name=$5
+  date=$6
+  fully_qualified_base_image=$7
 
   base_dir=$(cd "$(dirname "$0")" && cd .. && pwd)
   stack_dir="${base_dir}/bionic"
@@ -50,7 +53,10 @@ build_cnb_image() {
 
   docker build -t "${tag}" \
     --build-arg "base_image=${base_image}" \
+    --build-arg "description=${description}" \
     --build-arg "mixins=${mixins}" \
+    --build-arg "released=${date}" \
+    --build-arg "fully_qualified_base_image=${fully_qualified_base_image}" \
     "${stack_dir}/cnb/${image_name}"
 }
 
@@ -119,28 +125,49 @@ main() {
     shift
   done
 
-  if [[ "${stack_name}" != "full" && "${stack_name}" != "base" ]]; then
+  build_description=
+  run_description=
+
+  if [[ "${stack_name}" == "base" ]]; then
+    build_description="ubuntu:bionic + openssl + CA certs + compilers + shell utilities"
+    run_description="ubuntu:bionic + openssl + CA certs"
+  elif [[ "${stack_name}" == "full" ]]; then
+    build_description="ubuntu:bionic + many common C libraries and utilities"
+    run_description="ubuntu:bionic + many common C libraries and utilities"
+  else
     usage
   fi
 
-  base_build_tag="${build_dest}:${version}-${stack_name}"
-  base_run_tag="${run_dest}:${version}-${stack_name}"
-  cnb_build_tag="${base_build_tag}-cnb"
-  cnb_run_tag="${base_run_tag}-cnb"
+  build_base_tag="${build_dest}:${version}-${stack_name}"
+  run_base_tag="${run_dest}:${version}-${stack_name}"
+  cnb_build_tag="${build_base_tag}-cnb"
+  cnb_run_tag="${run_base_tag}-cnb"
 
   update_bionic_image
 
-  build_base_image "${base_build_tag}" "${stack_name}" "build"
-  build_base_image "${base_run_tag}" "${stack_name}" "run"
+  build_base_image "${build_base_tag}" "${stack_name}" "build"
+  build_base_image "${run_base_tag}" "${stack_name}" "run"
 
-  build_mixins="$(get_mixins "${base_build_tag}" "${base_run_tag}" "build")"
-  run_mixins="$(get_mixins "${base_build_tag}" "${base_run_tag}" "run")"
-
-  build_cnb_image "${cnb_build_tag}" "${base_build_tag}" "${build_mixins}" "build"
-  build_cnb_image "${cnb_run_tag}" "${base_run_tag}" "${run_mixins}" "run"
+  fully_qualified_build_base_image=""
+  fully_qualified_run_base_image=""
 
   if [[ -n "${publish}" ]]; then
-    publish "${base_build_tag}" "${base_run_tag}" "${cnb_build_tag}" "${cnb_run_tag}"
+    publish "${build_base_tag}" "${run_base_tag}"
+    fully_qualified_build_base_image="\"base-image\":\"paketobuildpacks/build@sha256:"$(docker inspect --format='{{index .RepoDigests 0}}' "${build_base_tag}")""
+    fully_qualified_run_base_image="\"base-image\":\"paketobuildpacks/run@sha256:"$(docker inspect --format='{{index .RepoDigests 0}}' "${run_base_tag}")""
+  fi
+
+
+  build_mixins="$(get_mixins "${build_base_tag}" "${run_base_tag}" "build")"
+  run_mixins="$(get_mixins "${build_base_tag}" "${run_base_tag}" "run")"
+
+  date="$(date '+%Y-%m-%d')"
+
+  build_cnb_image "${cnb_build_tag}" "${build_base_tag}" "${build_description}" "${build_mixins}" "build" "${date}" "${fully_qualified_build_base_image}"
+  build_cnb_image "${cnb_run_tag}" "${run_base_tag}" "${run_description}" "${run_mixins}" "run" "${date}" "${fully_qualified_run_base_image}"
+
+  if [[ -n "${publish}" ]]; then
+    publish "${cnb_build_tag}" "${cnb_run_tag}"
   fi
 }
 
