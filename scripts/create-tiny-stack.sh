@@ -136,21 +136,18 @@ main() {
 
   build_run_base_image "${run_base_tag}"
 
-  fully_qualified_build_base_image=""
   fully_qualified_run_base_image=""
 
   if [[ -n "${publish}" ]]; then
     publish "${run_base_tag}"
-    fully_qualified_build_base_image="\"base-image\":\"paketobuildpacks/build@sha256:"$(docker inspect --format='{{index .RepoDigests 0}}' "${build_base_tag}")""
-    fully_qualified_run_base_image="\"base-image\":\"paketobuildpacks/run@sha256:"$(docker inspect --format='{{index .RepoDigests 0}}' "${run_base_tag}")""
-
+    fully_qualified_run_base_image="{\"base-image\":\"$(docker inspect --format='{{index .RepoDigests 0}}' "${run_base_tag}")\"}"
   fi
 
   date=$(date '+%Y-%m-%d')
   build_cnb_description="ubuntu:bionic + openssl + CA certs + compilers + shell utilities"
   run_cnb_description="distroless-like bionic + glibc + openssl + CA certs"
 
-  build_build_cnb_image "${build_cnb_tag}" "${build_base_tag}" "${build_cnb_description}" "${date}" "${fully_qualified_build_base_image}"
+  build_build_cnb_image "${build_cnb_tag}" "${build_base_tag}" "${build_cnb_description}" "${date}" ""
   build_run_cnb_image "${run_cnb_tag}" "${run_base_tag}" "${run_cnb_description}" "${date}" "${fully_qualified_run_base_image}"
 
   if [[ -n "${publish}" ]]; then

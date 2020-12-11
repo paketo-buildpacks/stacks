@@ -153,10 +153,9 @@ main() {
 
   if [[ -n "${publish}" ]]; then
     publish "${build_base_tag}" "${run_base_tag}"
-    fully_qualified_build_base_image="\"base-image\":\"paketobuildpacks/build@sha256:"$(docker inspect --format='{{index .RepoDigests 0}}' "${build_base_tag}")""
-    fully_qualified_run_base_image="\"base-image\":\"paketobuildpacks/run@sha256:"$(docker inspect --format='{{index .RepoDigests 0}}' "${run_base_tag}")""
+    fully_qualified_build_base_image="{\"base-image\":\"$(docker inspect --format='{{index .RepoDigests 0}}' "${build_base_tag}")\"}"
+    fully_qualified_run_base_image="{\"base-image\":\"$(docker inspect --format='{{index .RepoDigests 0}}' "${run_base_tag}")\"}"
   fi
-
 
   build_mixins="$(get_mixins "${build_base_tag}" "${run_base_tag}" "build")"
   run_mixins="$(get_mixins "${build_base_tag}" "${run_base_tag}" "run")"
