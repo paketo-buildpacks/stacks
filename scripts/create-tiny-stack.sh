@@ -53,6 +53,7 @@ build_build_cnb_image(){
     --build-arg "released=${date}" \
     --build-arg "description=${description}" \
     --build-arg "fully_qualified_base_image=${fully_qualified_base_image}" \
+    --build-arg "mixins=[]" \
     "$bionic_dir/cnb/build"
 
 }
