@@ -25,6 +25,8 @@ Run Images
 - `index.docker.io/paketobuildpacks/run:tiny-cnb`
 - `gcr.io/paketo-buildpacks/run:tiny-cnb`
 
+**Note:** These images are tagged in the format `<stack-name>-cnb`. For many of them, there is a corresponding image tagged `<stack-name>` (i.e. `paketobuildpacks/build:base`). Those images are useful for extending our stack with your own packages and metadata. The images with the `<stack-name>-cnb` already have [CNB metadata](https://github.com/buildpacks/spec/blob/main/platform.md#stacks) set and can be used directly as stack images.
+
 ## Use Cases
 
 
