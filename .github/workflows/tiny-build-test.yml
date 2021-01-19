@@ -57,7 +57,7 @@ jobs:
     - name: Build and push images
       id: build-cnb-images
       run: |
-        build_base_image="index.docker.io/paketobuildpacks/build:base"
+        build_base_image="docker.io/paketobuildpacks/build:base"
         docker pull "${build_base_image}"
 
         build_base_sha="$(docker inspect --format='{{index .RepoDigests 0}}' "${build_base_image}")"
