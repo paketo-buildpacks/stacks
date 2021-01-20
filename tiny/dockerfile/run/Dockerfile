@@ -20,6 +20,12 @@ RUN mkdir -p /tiny/tmp \
     && ./download-and-install-package.sh \
     && ./install-certs.sh
 
+RUN find /tiny/usr/share/doc/*/* ! -name copyright | xargs rm -rf && \
+  rm -rf \
+    /tiny/etc/update-motd.d/* \
+    /tiny/usr/share/man/* \
+    /tiny/usr/share/lintian/*
+
 ADD files/os-release /tmp/etc/os-release
 
 RUN grep -v 'PRETTY_NAME=' "/tiny/etc/os-release" \
