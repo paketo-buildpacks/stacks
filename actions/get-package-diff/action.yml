@@ -1,0 +1,26 @@
+name: 'Get package diff'
+description: 'Show added and removed packages for the build and run images of a stack'
+inputs:
+  ref:
+    description: 'Reference to the commit which updated the packages'
+    required: true
+    default: HEAD
+outputs:
+  added-build-packages:
+    description: "List of pacakges added to the build image"
+    value: ${{ steps.get-package-diff.outputs.added-build-packages }}
+  added-run-packages:
+    description: "List of pacakges added to the run image"
+    value: ${{ steps.get-package-diff.outputs.added-run-packages }}
+  removed-build-packages:
+    description: "List of pacakges removed from the build image"
+    value: ${{ steps.get-package-diff.outputs.removed-build-packages }}
+  removed-run-packages:
+    description: "List of pacakges removed from the run image"
+    value: ${{ steps.get-package-diff.outputs.removed-run-packages }}
+runs:
+  using: "composite"
+  steps:
+  - run: ${{ github.action_path }}/get-package-diff "${{ inputs.ref }}"
+    id: get-package-diff
+    shell: bash

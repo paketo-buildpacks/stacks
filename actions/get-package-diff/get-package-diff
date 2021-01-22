@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+get_package_diff() {
+  local ref=$1
+  local phase=$2
+  local action=$3
+
+  package_diff="$(git diff --no-color --unified=0 "${ref}"^.."${ref}" -- "${phase}-receipt" \
+    | grep -A999 '^@@' | grep -v '^@@' || echo -n ""
+  )"
+  added_packages="$(echo "${package_diff}" | grep '^+' | awk '{ print $2 }' || echo -n "")"
+  removed_packages="$(echo "${package_diff}" | grep '^-' | awk '{ print $2 }' || echo -n "")"
+
+  if [[ "${action}" == "added" ]]; then
+    base_packages="${added_packages}"
+    other_packages="${removed_packages}"
+  else
+    base_packages="${removed_packages}"
+    other_packages="${added_packages}"
+  fi
+
+  for base_package in ${base_packages}; do
+    is_base_package=true
+
+    for other_package in ${other_packages}; do
+      if [[ "${base_package}" == "${other_package}" ]]; then
+        is_base_package=false
+        break
+      fi
+    done
+
+    if [[ "${is_base_package}" == "true" ]]; then
+      echo "${base_package}"
+    fi
+  done
+}
+
+escape() {
+  s=$1
+  s="${s//'%'/'%25'}"
+  s="${s//$'\n'/'%0A'}"
+  s="${s//$'\r'/'%0D'}"
+  echo "${s}"
+}
+
+main() {
+  local ref=$1
+
+  added_build_packages="$(get_package_diff "${ref}" "build" "added")"
+  added_run_packages="$(get_package_diff "${ref}" "run" "added")"
+  removed_build_packages="$(get_package_diff "${ref}" "build" "removed")"
+  removed_run_packages="$(get_package_diff "${ref}" "run" "removed")"
+
+  echo "::set-output name=added-build-packages::$(escape "${added_build_packages}")"
+  echo "::set-output name=added-run-packages::$(escape "${added_run_packages}")"
+  echo "::set-output name=removed-build-packages::$(escape "${removed_build_packages}")"
+  echo "::set-output name=removed-run-packages::$(escape "${removed_run_packages}")"
+}
+
+main "$@"
