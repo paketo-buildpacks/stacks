@@ -6,8 +6,10 @@ description: |
 outputs:
   run_diff:
     description: Run receipt diff
+    value: ${{ steps.receipt-diff.outputs.run_diff }}
   build_diff:
     description: Build receipt diff
+    value: ${{ steps.receipt-diff.outputs.build_diff }}
 
 inputs:
   repo:
@@ -21,12 +23,15 @@ inputs:
     required: false
 
 runs:
-  using: 'docker'
-  image: 'Dockerfile'
-  args:
-  - "--repo"
-  - ${{ inputs.repo }}
-  - "--user"
-  - ${{ inputs.user }}
-  - "--token"
-  - ${{ inputs.token }}
+  using: 'composite'
+  steps:
+  - id: receipt-diff
+    shell: bash
+    run: |
+      #!/usr/bin/env bash
+      set -euo pipefail
+
+      ${{ github.action_path }}/generate-diffs \
+        "${{ inputs.user }}" \
+        "${{ inputs.token }}" \
+        "${{ inputs.repo }}"

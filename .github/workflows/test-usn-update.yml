@@ -20,5 +20,5 @@ jobs:
 
     - name: Run Tests
       run: |
-        cd actions/usn-update/entrypoint
+        cd actions/usn-update/usn-recorder
         go test ./...

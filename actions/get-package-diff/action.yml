@@ -21,6 +21,10 @@ outputs:
 runs:
   using: "composite"
   steps:
-  - run: ${{ github.action_path }}/get-package-diff "${{ inputs.ref }}"
-    id: get-package-diff
+  - id: get-package-diff
     shell: bash
+    run: |
+      #!/usr/bin/env bash
+      set -euo pipefail
+
+      ${{ github.action_path }}/get-package-diff "${{ inputs.ref }}"

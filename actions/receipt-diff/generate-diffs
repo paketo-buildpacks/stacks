@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+generate_diff() {
+  local prev_tag=$1
+  local repo=$2
+  local receipt=$3
+
+  git -C "${repo}" diff "${prev_tag}" "${receipt}" \
+    | grep -v "^---" \
+    | grep -v "^+++" \
+    | grep -e "^+" -e "^-" \
+    || true
+}
+
+escape() {
+  s=$1
+  s="${s//'%'/'%25'}"
+  s="${s//$'\n'/'%0A'}"
+  s="${s//$'\r'/'%0D'}"
+  echo "${s}"
+}
+
+main() {
+  local user=$1
+  local token=$2
+  local repo=$3
+
+  repo_location="/tmp/repo"
+  git clone "https://${user}:${token}@github.com/${repo}" "${repo_location}"
+  previous_tag="$(git -C "${repo_location}" tag --sort version:refname | tail -n 1)"
+
+  run_diff="$(generate_diff "${previous_tag}" "${repo_location}" run-receipt)"
+  echo "::set-output name=run_diff::$(escape "${run_diff}")"
+
+  build_diff="$(generate_diff "${previous_tag}" "${repo_location}" build-receipt)"
+  echo "::set-output name=run_diff::$(escape "${build_diff}")"
+}
+
+main "$@"
