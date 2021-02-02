@@ -21,7 +21,7 @@ env:
 
 jobs:
   test-docker-image:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
 
     steps:
     - uses: actions/checkout@v2
