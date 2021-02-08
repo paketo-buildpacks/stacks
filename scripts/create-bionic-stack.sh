@@ -45,6 +45,7 @@ build_cnb_image() {
   image_name=$5
   date=$6
   fully_qualified_base_image=$7
+  package_metadata=$8
 
   base_dir=$(cd "$(dirname "$0")" && cd .. && pwd)
   stack_dir="${base_dir}/bionic"
@@ -57,6 +58,7 @@ build_cnb_image() {
     --build-arg "mixins=${mixins}" \
     --build-arg "released=${date}" \
     --build-arg "fully_qualified_base_image=${fully_qualified_base_image}" \
+    --build-arg "package_metadata=${package_metadata}" \
     "${stack_dir}/cnb/${image_name}"
 }
 
@@ -77,6 +79,34 @@ get_mixins() {
   fi
 
   echo "${shared_mixins}" "${image_only_mixins}" | jq -c -s add
+}
+
+format_metadata_line(){
+    line=$1
+    IFS=';' read -r -a package_array <<< "$line"
+    summary="$(echo ${package_array[3]} | sed 's/\"/\\"/g')"
+    echo "{\"name\":\"${package_array[0]}\",\"version\":\"${package_array[1]}\",\"arch\":\"${package_array[2]}\",\"summary\":\"$summary\",\"source\":{\"name\":\"${package_array[4]}\",\"version\":\"${package_array[5]}\",\"upstream-version\":\"${package_array[6]}\"}},"
+}
+
+parse_package_list(){
+    package_list=$1
+    array_contents="$(
+    while IFS='\n' read -r line; do
+        format_metadata_line "$line"
+    done <<< "$package_list"
+    )"
+    array_contents="$(echo $array_contents | sed 's/.$//')"
+    echo ["$array_contents"]
+}
+
+get_package_metadata() {
+  image_name=$1
+
+  package_list="$(docker run --rm "${image_name}" dpkg-query -W -f='${binary:Package};${Version};${Architecture};${binary:Summary};${source:Package};${source:Version};${source:Upstream-Version}\n')"
+
+  json_package_list="$(parse_package_list "${package_list}")"
+
+  echo "${json_package_list}" | jq -c
 }
 
 publish() {
@@ -160,10 +190,13 @@ main() {
   build_mixins="$(get_mixins "${build_base_tag}" "${run_base_tag}" "build")"
   run_mixins="$(get_mixins "${build_base_tag}" "${run_base_tag}" "run")"
 
+  build_package_metadata="$(get_package_metadata "${build_base_tag}")"
+  run_package_metadata="$(get_package_metadata "${run_base_tag}")"
+
   date="$(date '+%Y-%m-%d')"
 
-  build_cnb_image "${cnb_build_tag}" "${build_base_tag}" "${build_description}" "${build_mixins}" "build" "${date}" "${fully_qualified_build_base_image}"
-  build_cnb_image "${cnb_run_tag}" "${run_base_tag}" "${run_description}" "${run_mixins}" "run" "${date}" "${fully_qualified_run_base_image}"
+  build_cnb_image "${cnb_build_tag}" "${build_base_tag}" "${build_description}" "${build_mixins}" "build" "${date}" "${fully_qualified_build_base_image}" "${build_package_metadata}"
+  build_cnb_image "${cnb_run_tag}" "${run_base_tag}" "${run_description}" "${run_mixins}" "run" "${date}" "${fully_qualified_run_base_image}" "${run_package_metadata}"
 
   if [[ -n "${publish}" ]]; then
     publish "${cnb_build_tag}" "${cnb_run_tag}"

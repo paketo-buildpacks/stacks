@@ -7,6 +7,7 @@ ARG distro_name="Ubuntu"
 ARG distro_version="18.04"
 ARG homepage="https://github.com/paketo-buildpacks/stacks"
 ARG maintainer="Paketo Buildpacks"
+ARG package_metadata
 ARG stack_id="io.buildpacks.stacks.bionic"
 ARG description
 ARG fully_qualified_base_image
@@ -30,3 +31,4 @@ LABEL io.buildpacks.stack.maintainer=${maintainer}
 LABEL io.buildpacks.stack.metadata=${fully_qualified_base_image}
 LABEL io.buildpacks.stack.mixins=${mixins}
 LABEL io.buildpacks.stack.released=${released}
+LABEL io.paketo.stack.packages=${package_metadata}
