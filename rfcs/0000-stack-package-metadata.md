@@ -13,32 +13,32 @@ This metadata will help users have a more accurate depiction of exactly what is 
 
 Schema:
 ```json
-"io.paketo.stack.packages":"[{
-                           	"name": "<NAME>",
-                           	"version": "<VERSION>>",
-                           	"arch": "<ARCHITECTURE>>",
-                           	"sourcePackage": {
-                           		"name": "<NAME>",
-                           		"version": "<VERSION>",
-                           		"upstreamVersion": "<UPSTREAM_VERSION>"
-                           	},
-                           	"summary": "<SUMMARY>"
-                           }]"
+"io.paketo.stack.packages": "[{
+                               "name": "<NAME>",
+                               "version": "<VERSION>>",
+                               "arch": "<ARCHITECTURE>>",
+                               "summary": "<SUMMARY>",
+                               "sourcePackage": {
+                                 "name": "<NAME>",
+                                 "version": "<VERSION>",
+                                 "upstreamVersion": "<UPSTREAM_VERSION>"
+                               }
+                            }]"
 ```
 
 Example:
 ```json
-"io.paketo.stack.packages":"[{
-                                "name": "base-files",
-                                "version": "10.1 ubuntu2.10",
-                                "arch": "amd64",
-                                "sourcePackage": {
-                                    "name": "base-files",
-                                    "version": "4.1.2",
-                                    "upstreamVersion": "4.1.2"
-                                },
-                                "summary": "Secure Sockets Layer toolkit - cryptographic utility"
-                              }]"
+"io.paketo.stack.packages": "[{
+                               "name": "libc6",
+                               "version": "2.27-3ubuntu1.4",
+                               "arch": "amd64",
+                               "summary": "GNU C Library: Shared libraries",
+                               "sourcePackage": {
+                                 "name": "glibc",
+                                 "version": "2.27-3ubuntu1.4",
+                                 "upstreamVersion": "2.27"
+                               }
+                             }]"
 ```
 
 
