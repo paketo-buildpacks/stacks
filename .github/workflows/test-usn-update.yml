@@ -4,10 +4,12 @@ on:
   pull_request:
     branches: [ main ]
     paths:
+    - '.github/workflows/test-usn-update.yml'
     - 'actions/usn-update/entrypoint/**'
   push:
     branches: [ main ]
     paths:
+    - '.github/workflows/test-usn-update.yml'
     - 'actions/usn-update/entrypoint/**'
 
 jobs:
