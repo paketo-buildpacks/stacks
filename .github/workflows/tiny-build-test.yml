@@ -40,7 +40,7 @@ jobs:
         sudo bats -t ./tests/test.bats
         sudo bats -t ./tests/testapp.bats
 
-    - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+    - uses: google-github-actions/setup-gcloud@master
       with:
         version: '270.0.0'
         service_account_email: paketo-buildpacks-gcr-push@cf-buildpacks-releng.iam.gserviceaccount.com
