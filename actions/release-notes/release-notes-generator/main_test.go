@@ -2,15 +2,16 @@ package main_test
 
 import (
 	"encoding/json"
-	. "github.com/paketo-buildpacks/tiny-release/actions/release-notes/release-notes-generator"
-	"github.com/sclevine/spec"
-	"github.com/sclevine/spec/report"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"testing"
+
+	. "github.com/paketo-buildpacks/stacks/actions/release-notes/release-notes-generator"
+	"github.com/sclevine/spec"
+	"github.com/sclevine/spec/report"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestReleaseNotesGenerator(t *testing.T) {

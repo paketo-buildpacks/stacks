@@ -1,4 +1,4 @@
-module github.com/paketo-buildpacks/tiny-release/actions/release-notes/release-notes-generator
+module github.com/paketo-buildpacks/stacks/actions/release-notes/release-notes-generator
 
 go 1.15
 

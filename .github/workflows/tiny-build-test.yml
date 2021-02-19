@@ -122,7 +122,7 @@ jobs:
     - name: Trigger Release
       uses: paketo-buildpacks/github-config/actions/dispatch@main
       with:
-        repos: paketo-buildpacks/tiny-release
+        repos: paketo-buildpacks/tiny-stack-release
         token: ${{ secrets.PAKETO_BOT_GITHUB_TOKEN }}
         event: new-stack-rc
         payload: |
