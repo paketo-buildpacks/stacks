@@ -52,14 +52,25 @@ build_cnb_image() {
 
   echo "Building cnb ${image_name} image"
 
-  docker build -t "${tag}" \
-    --build-arg "base_image=${base_image}" \
-    --build-arg "description=${description}" \
-    --build-arg "mixins=${mixins}" \
-    --build-arg "released=${date}" \
-    --build-arg "fully_qualified_base_image=${fully_qualified_base_image}" \
-    --build-arg "package_metadata=${package_metadata}" \
-    "${stack_dir}/cnb/${image_name}"
+  if [[ "${package_metadata}" != "" ]]; then
+    docker build -t "${tag}" \
+      --build-arg "base_image=${base_image}" \
+      --build-arg "description=${description}" \
+      --build-arg "mixins=${mixins}" \
+      --build-arg "released=${date}" \
+      --build-arg "fully_qualified_base_image=${fully_qualified_base_image}" \
+      --build-arg "package_metadata=${package_metadata}" \
+      "${stack_dir}/cnb/${image_name}"
+  else
+    grep -v "io.paketo.stack.packages" "${stack_dir}/cnb/${image_name}/Dockerfile" | \
+      docker build -t "${tag}" \
+      --build-arg "base_image=${base_image}" \
+      --build-arg "description=${description}" \
+      --build-arg "mixins=${mixins}" \
+      --build-arg "released=${date}" \
+      --build-arg "fully_qualified_base_image=${fully_qualified_base_image}" \
+      -
+  fi
 }
 
 get_mixins() {
@@ -190,8 +201,12 @@ main() {
   build_mixins="$(get_mixins "${build_base_tag}" "${run_base_tag}" "build")"
   run_mixins="$(get_mixins "${build_base_tag}" "${run_base_tag}" "run")"
 
-  build_package_metadata="$(get_package_metadata "${build_base_tag}")"
-  run_package_metadata="$(get_package_metadata "${run_base_tag}")"
+  build_package_metadata=
+  run_package_metadata=
+  if [[ "${stack_name}" == "base" ]]; then
+    build_package_metadata="$(get_package_metadata "${build_base_tag}")"
+    run_package_metadata="$(get_package_metadata "${run_base_tag}")"
+  fi
 
   date="$(date '+%Y-%m-%d')"
 
