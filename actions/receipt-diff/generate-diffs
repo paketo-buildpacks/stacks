@@ -35,7 +35,7 @@ main() {
   echo "::set-output name=run_diff::$(escape "${run_diff}")"
 
   build_diff="$(generate_diff "${previous_tag}" "${repo_location}" build-receipt)"
-  echo "::set-output name=run_diff::$(escape "${build_diff}")"
+  echo "::set-output name=build_diff::$(escape "${build_diff}")"
 }
 
 main "$@"
