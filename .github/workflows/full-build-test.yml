@@ -28,6 +28,11 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - name: Install jq 1.6
+      run: |
+        sudo curl -sSLf -o /usr/local/bin/jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
+        sudo chmod a+x /usr/local/bin/jq
+
     - uses: google-github-actions/setup-gcloud@master
       with:
         version: '270.0.0'

@@ -26,6 +26,11 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - name: Install jq 1.6
+      run: |
+        sudo curl -sSLf -o /usr/local/bin/jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
+        sudo chmod a+x /usr/local/bin/jq
+
     - name: Download BATS
       run: |
         curl -sL https://github.com/bats-core/bats-core/archive/master.zip --output master.zip
