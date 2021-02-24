@@ -20,6 +20,7 @@ ARG distro_name="Ubuntu"
 ARG distro_version="18.04"
 ARG homepage="https://github.com/paketo-buildpacks/stacks"
 ARG maintainer="Paketo Buildpacks"
+ARG package_metadata
 ARG stack_id="io.paketo.stacks.tiny"
 ARG fully_qualified_base_image
 ARG released
@@ -40,3 +41,4 @@ LABEL io.buildpacks.stack.mixins="[\
 \"run:ca-certificates\", \
 \"run:libssl1.1\", \
 \"run:openssl\"]"
+LABEL io.paketo.stack.packages=${package_metadata}
