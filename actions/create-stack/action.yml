@@ -1,0 +1,54 @@
+name: 'Create Stack'
+
+description: |
+  Create stack
+
+inputs:
+  build_destination:
+    description: 'Destination to tag and publish base image to'
+    required: true
+  run_destination:
+    description: 'Destination to tag and publish run image to'
+    required: true
+  version:
+    description: 'Version to include in image tags'
+    required: true
+  stack:
+    description: 'Stack name (base, full)'
+    required: true
+  stacks_dir:
+    description: 'Stacks repo base directory'
+    required: true
+  publish:
+    description: 'Push to docker registry'
+    required: true
+    default: false
+
+runs:
+  using: 'composite'
+  steps:
+    - id: create-stack
+      shell: bash
+      run: |
+        #!/usr/bin/env bash
+        set -euo pipefail
+
+        cd "${{ inputs.stacks_dir }}/create-stack"
+
+        go build
+
+        publish=""
+
+        if [[ ${{ inputs.publish }} != 'false' ]]; then
+          publish="--publish"
+        fi
+
+        ./create-stack \
+          --build-destination "${{ inputs.build_destination }}" \
+          --run-destination "${{ inputs.run_destination }}" \
+          --version "${{ inputs.version }}" \
+          --stack "${{ inputs.stack }}" \
+          --stacks-dir "${{ inputs.stacks_dir }}" \
+          "${publish}"
+
+        rm -f ./create-stack

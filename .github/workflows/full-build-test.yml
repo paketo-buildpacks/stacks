@@ -1,7 +1,7 @@
 name: Full Build Test
 
 on:
-  workflow_dispatch: {}
+  workflow_dispatch: { }
   schedule:
     # Every Sunday at 1:00 AM
     - cron: '0 1 * * 0'
@@ -10,9 +10,9 @@ on:
   push:
     branches: [ main ]
     paths:
-    - 'bionic/**'
-    - 'arch/x64_64/**'
-    - 'packages/full/**'
+      - 'bionic/**'
+      - 'arch/x64_64/**'
+      - 'packages/full/**'
 
 env:
   BUILD_BASE_TAG: paketobuildpacks/build-rc:${{ github.sha }}-full
@@ -26,91 +26,78 @@ jobs:
     runs-on: ubuntu-18.04
 
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - name: Install jq 1.6
-      run: |
-        sudo curl -sSLf -o /usr/local/bin/jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
-        sudo chmod a+x /usr/local/bin/jq
+      - name: Docker login
+        run: |
+          docker login -u ${{ secrets.PAKETO_BUILDPACKS_DOCKERHUB_USERNAME }} --password-stdin \
+            < <(echo "${{ secrets.PAKETO_BUILDPACKS_DOCKERHUB_PASSWORD }}")
 
-    - uses: google-github-actions/setup-gcloud@master
-      with:
-        version: '270.0.0'
-        service_account_email: paketo-buildpacks-gcr-push@cf-buildpacks-releng.iam.gserviceaccount.com
-        service_account_key: ${{ secrets.CORE_DEPS_GCR_PUSH_BOT_KEY }}
+      - name: Build and push images
+        uses: paketo-buildpacks/stacks/actions/create-stack@main
+        with:
+          build_destination: paketobuildpacks/build-rc
+          run_destination: paketobuildpacks/run-rc
+          version: ${{ github.sha }}
+          stack: full
+          stacks_dir: ${GITHUB_WORKSPACE}
+          publish: true
 
-    - name: Configure docker gcloud auth
-      run: gcloud auth configure-docker
+      - name: Setup CNB Tests
+        run: |
+          curl -sSL "https://github.com/buildpacks/pack/releases/download/v0.13.1/pack-v0.13.1-linux.tgz" \
+            | sudo tar -C /usr/local/bin/ --no-same-owner -xzv pack
+          git clone https://github.com/paketo-buildpacks/go.git /tmp/go
 
-    - name: Docker login
-      run: |
-        docker login -u ${{ secrets.PAKETO_BUILDPACKS_DOCKERHUB_USERNAME }} --password-stdin \
-          < <(echo "${{ secrets.PAKETO_BUILDPACKS_DOCKERHUB_PASSWORD }}")
+      - name: Test CNB Images
+        run: |
+          cat > /tmp/test-builder.toml << EOF
+            description = "Test go builder"
 
-    - name: Build and push images
-      run: |
-        ./scripts/create-bionic-stack.sh \
-          -s full \
-          -b paketobuildpacks/build-rc \
-          -r paketobuildpacks/run-rc \
-          -v ${{ github.sha }} \
-          --publish
+            [[buildpacks]]
+            image = "gcr.io/paketo-buildpacks/go:0.1.0"
+            version = "0.1.0"
 
-    - name: Setup CNB Tests
-      run: |
-        curl -sSL "https://github.com/buildpacks/pack/releases/download/v0.13.1/pack-v0.13.1-linux.tgz" \
-          | sudo tar -C /usr/local/bin/ --no-same-owner -xzv pack
-        git clone https://github.com/paketo-buildpacks/go.git /tmp/go
+            [[order]]
 
-    - name: Test CNB Images
-      run: |
-        cat > /tmp/test-builder.toml << EOF
-          description = "Test go builder"
+            [[order.group]]
+            id = "paketo-buildpacks/go"
+            version = "0.1.0"
 
-          [[buildpacks]]
-          image = "gcr.io/paketo-buildpacks/go:0.1.0"
-          version = "0.1.0"
+            [stack]
+            id = "${STACK_ID}"
+            build-image = "${BUILD_CNB_TAG}"
+            run-image = "${RUN_CNB_TAG}"
+          EOF
 
-          [[order]]
+          pack create-builder test-builder -c /tmp/test-builder.toml
+          pack build test-app --builder test-builder --path /tmp/go/integration/testdata/go_mod
+          docker run -d -p 8080:8080 test-app
+          curl http://localhost:8080
 
-          [[order.group]]
-          id = "paketo-buildpacks/go"
-          version = "0.1.0"
+      - name: Get Image SHAs
+        id: image-shas
+        run: |
+          build_base_sha="$(docker inspect --format='{{index .RepoDigests 0}}' "${BUILD_BASE_TAG}")"
+          build_cnb_sha="$(docker inspect --format='{{index .RepoDigests 0}}' "${BUILD_CNB_TAG}")"
+          run_base_sha="$(docker inspect --format='{{index .RepoDigests 0}}' "${RUN_BASE_TAG}")"
+          run_cnb_sha="$(docker inspect --format='{{index .RepoDigests 0}}' "${RUN_CNB_TAG}")"
 
-          [stack]
-          id = "${STACK_ID}"
-          build-image = "${BUILD_CNB_TAG}"
-          run-image = "${RUN_CNB_TAG}"
-        EOF
+          echo "::set-output name=build_base_sha::${build_base_sha}"
+          echo "::set-output name=build_cnb_sha::${build_cnb_sha}"
+          echo "::set-output name=run_base_sha::${run_base_sha}"
+          echo "::set-output name=run_cnb_sha::${run_cnb_sha}"
 
-        pack create-builder test-builder -c /tmp/test-builder.toml
-        pack build test-app --builder test-builder --path /tmp/go/integration/testdata/go_mod
-        docker run -d -p 8080:8080 test-app
-        curl http://localhost:8080
-
-    - name: Get Image SHAs
-      id: image-shas
-      run: |
-        build_base_sha="$(docker inspect --format='{{index .RepoDigests 0}}' "${BUILD_BASE_TAG}")"
-        build_cnb_sha="$(docker inspect --format='{{index .RepoDigests 0}}' "${BUILD_CNB_TAG}")"
-        run_base_sha="$(docker inspect --format='{{index .RepoDigests 0}}' "${RUN_BASE_TAG}")"
-        run_cnb_sha="$(docker inspect --format='{{index .RepoDigests 0}}' "${RUN_CNB_TAG}")"
-
-        echo "::set-output name=build_base_sha::${build_base_sha}"
-        echo "::set-output name=build_cnb_sha::${build_cnb_sha}"
-        echo "::set-output name=run_base_sha::${run_base_sha}"
-        echo "::set-output name=run_cnb_sha::${run_cnb_sha}"
-
-    - name: Trigger Release
-      uses: paketo-buildpacks/github-config/actions/dispatch@main
-      with:
-        repos: paketo-buildpacks/full-stack-release
-        token: ${{ secrets.PAKETO_BOT_GITHUB_TOKEN }}
-        event: new-stack-rc
-        payload: |
-          {
-            "run_base_image": "${{ steps.image-shas.outputs.run_base_sha }}",
-            "run_cnb_image": "${{ steps.image-shas.outputs.run_cnb_sha }}",
-            "build_base_image": "${{ steps.image-shas.outputs.build_base_sha }}",
-            "build_cnb_image": "${{ steps.image-shas.outputs.build_cnb_sha }}"
-          }
+      - name: Trigger Release
+        uses: paketo-buildpacks/github-config/actions/dispatch@main
+        with:
+          repos: paketo-buildpacks/full-stack-release
+          token: ${{ secrets.PAKETO_BOT_GITHUB_TOKEN }}
+          event: new-stack-rc
+          payload: |
+            {
+              "run_base_image": "${{ steps.image-shas.outputs.run_base_sha }}",
+              "run_cnb_image": "${{ steps.image-shas.outputs.run_cnb_sha }}",
+              "build_base_image": "${{ steps.image-shas.outputs.build_base_sha }}",
+              "build_cnb_image": "${{ steps.image-shas.outputs.build_cnb_sha }}"
+            }
