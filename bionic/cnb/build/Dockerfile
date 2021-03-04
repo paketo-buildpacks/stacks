@@ -10,7 +10,7 @@ ARG maintainer="Paketo Buildpacks"
 ARG package_metadata
 ARG stack_id="io.buildpacks.stacks.bionic"
 ARG description
-ARG fully_qualified_base_image
+ARG metadata
 ARG mixins
 ARG released
 
@@ -28,7 +28,7 @@ LABEL io.buildpacks.stack.distro.version=${distro_version}
 LABEL io.buildpacks.stack.homepage=${homepage}
 LABEL io.buildpacks.stack.id=${stack_id}
 LABEL io.buildpacks.stack.maintainer=${maintainer}
-LABEL io.buildpacks.stack.metadata=${fully_qualified_base_image}
+LABEL io.buildpacks.stack.metadata=${metadata}
 LABEL io.buildpacks.stack.mixins=${mixins}
 LABEL io.buildpacks.stack.released=${released}
 LABEL io.paketo.stack.packages=${package_metadata}

@@ -1,12 +1,17 @@
 version: 2
 updates:
-- package-ecosystem: gomod
-  directory: "/actions/release-notes/release-notes-generator/"
-  schedule:
-    interval: daily
-  open-pull-requests-limit: 10
-- package-ecosystem: gomod
-  directory: "/actions/usn-update/usn-recorder/"
-  schedule:
-    interval: daily
-  open-pull-requests-limit: 10
+  - package-ecosystem: gomod
+    directory: "/actions/release-notes/release-notes-generator/"
+    schedule:
+      interval: daily
+    open-pull-requests-limit: 10
+  - package-ecosystem: gomod
+    directory: "/actions/usn-update/usn-recorder/"
+    schedule:
+      interval: daily
+    open-pull-requests-limit: 10
+  - package-ecosystem: gomod
+    directory: "/create-stack/"
+    schedule:
+      interval: daily
+    open-pull-requests-limit: 10

@@ -45,15 +45,6 @@ jobs:
         sudo bats -t ./tests/test.bats
         sudo bats -t ./tests/testapp.bats
 
-    - uses: google-github-actions/setup-gcloud@master
-      with:
-        version: '270.0.0'
-        service_account_email: paketo-buildpacks-gcr-push@cf-buildpacks-releng.iam.gserviceaccount.com
-        service_account_key: ${{ secrets.CORE_DEPS_GCR_PUSH_BOT_KEY }}
-
-    - name: Configure docker gcloud auth
-      run: gcloud auth configure-docker
-
     - name: Docker login
       run: |
         docker login -u ${{ secrets.PAKETO_BUILDPACKS_DOCKERHUB_USERNAME }} --password-stdin \

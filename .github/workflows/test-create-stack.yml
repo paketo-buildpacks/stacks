@@ -1,0 +1,37 @@
+name: Test create stack
+
+on:
+  workflow_dispatch: { }
+  pull_request:
+    branches: [ main ]
+    paths:
+      - '.github/workflows/test-create-stack.yml'
+      - 'arch/**'
+      - 'bionic/**'
+      - 'create-stack/**'
+      - 'packages/**'
+  push:
+    branches: [ main ]
+    paths:
+      - '.github/workflows/test-create-stack.yml'
+      - 'arch/**'
+      - 'bionic/**'
+      - 'create-stack/**'
+      - 'packages/**'
+
+jobs:
+  test-create-stack:
+    runs-on: ubuntu-18.04
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Docker login
+        run: |
+          docker login -u ${{ secrets.PAKETO_TESTING_DOCKERHUB_USERNAME }} --password-stdin \
+            < <(echo '${{ secrets.PAKETO_TESTING_DOCKERHUB_PASSWORD }}')
+
+      - name: Run Tests
+        run: |
+          cd create-stack
+          go test -timeout 30m ./...
