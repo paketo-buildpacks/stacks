@@ -44,8 +44,8 @@ jobs:
 
     - name: Docker login
       run: |
-        docker login -u ${{ secrets.PAKETO_DOCKER_USER }} --password-stdin \
-          < <(echo "${{ secrets.PAKETO_DOCKER_PASS }}")
+        docker login -u ${{ secrets.PAKETO_BUILDPACKS_DOCKERHUB_USERNAME }} --password-stdin \
+          < <(echo "${{ secrets.PAKETO_BUILDPACKS_DOCKERHUB_PASSWORD }}")
 
     - name: Build and push images
       run: |
