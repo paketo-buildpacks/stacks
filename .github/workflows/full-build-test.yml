@@ -78,10 +78,10 @@ jobs:
       - name: Get Image SHAs
         id: image-shas
         run: |
-          build_base_sha="$(docker inspect --format='{{index .RepoDigests 0}}' "${BUILD_BASE_TAG}")"
-          build_cnb_sha="$(docker inspect --format='{{index .RepoDigests 0}}' "${BUILD_CNB_TAG}")"
-          run_base_sha="$(docker inspect --format='{{index .RepoDigests 0}}' "${RUN_BASE_TAG}")"
-          run_cnb_sha="$(docker inspect --format='{{index .RepoDigests 0}}' "${RUN_CNB_TAG}")"
+          build_base_sha="$(skopeo inspect "docker://${BUILD_BASE_TAG}" | jq -r '"\(.Name)@\(.Digest)"')"
+          build_cnb_sha="$(skopeo inspect "docker://${BUILD_CNB_TAG}" | jq -r '"\(.Name)@\(.Digest)"')"
+          run_base_sha="$(skopeo inspect "docker://${RUN_BASE_TAG}" | jq -r '"\(.Name)@\(.Digest)"')"
+          run_cnb_sha="$(skopeo inspect "docker://${RUN_CNB_TAG}" | jq -r '"\(.Name)@\(.Digest)"')"
 
           echo "::set-output name=build_base_sha::${build_base_sha}"
           echo "::set-output name=build_cnb_sha::${build_cnb_sha}"
