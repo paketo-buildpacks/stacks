@@ -3,15 +3,18 @@ package stack
 import (
 	"encoding/json"
 	"fmt"
+	"time"
+
 	"github.com/google/go-containerregistry/pkg/authn"
 	v1 "github.com/google/go-containerregistry/pkg/v1"
-	"time"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 . PackageFinder
 type PackageFinder interface {
-	GetPackagesList(image string) ([]string, error)
-	GetPackageMetadata(imageName string) (string, error)
+	GetBuildPackagesList(image string) ([]string, error)
+	GetRunPackagesList(image string) ([]string, error)
+	GetBuildPackageMetadata(imageName string) (string, error)
+	GetRunPackageMetadata(imageName string) (string, error)
 }
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 . MixinsGenerator
@@ -30,9 +33,8 @@ type ImageClient interface {
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 . Stack
 type Stack interface {
 	GetName() string
-	GetSources() string
-	GetBuildPackages() string
-	GetRunPackages() string
+	GetBaseBuildArgs() []string
+	GetBaseRunArgs() []string
 	GetBaseBuildDockerfilePath() string
 	GetBaseRunDockerfilePath() string
 	GetCNBBuildDockerfilePath() string
@@ -47,7 +49,7 @@ type Creator struct {
 	ImageClient     ImageClient
 }
 
-func (c Creator) CreateBionicStack(stack Stack, buildBaseTag, runBaseTag string, publish bool) error {
+func (c Creator) CreateStack(stack Stack, buildBaseTag, runBaseTag string, publish bool) error {
 	_, err := c.ImageClient.Pull("ubuntu:bionic", authn.DefaultKeychain)
 	if err != nil {
 		return fmt.Errorf("error pulling bionic image: %w", err)
@@ -67,14 +69,12 @@ func (c Creator) CreateBionicStack(stack Stack, buildBaseTag, runBaseTag string,
 }
 
 func (c Creator) buildBaseStackImages(stack Stack, buildBaseTag, runBaseTag string, publish bool) (string, string, error) {
-	buildBaseRef, err := c.buildBaseImage(buildBaseTag, stack.GetSources(), stack.GetBuildPackages(),
-		stack.GetBaseBuildDockerfilePath(), publish)
+	buildBaseRef, err := c.buildBaseImage(buildBaseTag, stack.GetBaseBuildDockerfilePath(), stack.GetBaseBuildArgs(), publish)
 	if err != nil {
 		return "", "", fmt.Errorf("error building base build image: %w", err)
 	}
 
-	runBaseRef, err := c.buildBaseImage(runBaseTag, stack.GetSources(), stack.GetRunPackages(),
-		stack.GetBaseRunDockerfilePath(), publish)
+	runBaseRef, err := c.buildBaseImage(runBaseTag, stack.GetBaseRunDockerfilePath(), stack.GetBaseRunArgs(), publish)
 	if err != nil {
 		return "", "", fmt.Errorf("error building base run image: %w", err)
 	}
@@ -91,12 +91,24 @@ func (c Creator) buildCnbStackImages(stack Stack, buildBaseTag, runBaseTag, buil
 
 	releaseDate := time.Now()
 
-	err = c.buildCnbImage(stack.GetCNBBuildDockerfilePath(), buildBaseTag, buildBaseRef, stack.GetBuildDescription(), releaseDate, buildMixins, publish)
+	buildPackageMetadata, err := c.PackageFinder.GetBuildPackageMetadata(buildBaseTag)
+	if err != nil {
+		return fmt.Errorf("failed to get build package metadata: %w", err)
+	}
+
+	runPackageMetadata, err := c.PackageFinder.GetRunPackageMetadata(runBaseTag)
+	if err != nil {
+		return fmt.Errorf("failed to get run package metadata: %w", err)
+	}
+
+	err = c.buildCnbImage(stack.GetCNBBuildDockerfilePath(), buildBaseTag, buildBaseRef, stack.GetBuildDescription(),
+		buildPackageMetadata, releaseDate, buildMixins, publish)
 	if err != nil {
 		return fmt.Errorf("error building cnb build image: %w", err)
 	}
 
-	err = c.buildCnbImage(stack.GetCNBRunDockerfilePath(), runBaseTag, runBaseRef, stack.GetRunDescription(), releaseDate, runMixins, publish)
+	err = c.buildCnbImage(stack.GetCNBRunDockerfilePath(), runBaseTag, runBaseRef, stack.GetRunDescription(),
+		runPackageMetadata, releaseDate, runMixins, publish)
 	if err != nil {
 		return fmt.Errorf("error building cnb run image: %w", err)
 	}
@@ -104,10 +116,8 @@ func (c Creator) buildCnbStackImages(stack Stack, buildBaseTag, runBaseTag, buil
 	return nil
 }
 
-func (c Creator) buildBaseImage(tag, sources, packages, dockerfilePath string, publish bool) (string, error) {
-	err := c.ImageClient.Build(tag, dockerfilePath,
-		fmt.Sprintf("sources=%s", sources),
-		fmt.Sprintf("packages=%s", packages))
+func (c Creator) buildBaseImage(tag, dockerfilePath string, dockerBuildArgs []string, publish bool) (string, error) {
+	err := c.ImageClient.Build(tag, dockerfilePath, dockerBuildArgs...)
 	if err != nil {
 		return "", fmt.Errorf("failed to build base image: %w", err)
 	}
@@ -123,7 +133,7 @@ func (c Creator) buildBaseImage(tag, sources, packages, dockerfilePath string, p
 	return "", nil
 }
 
-func (c Creator) buildCnbImage(dockerfilePath, baseTag, baseRef, description string, releaseDate time.Time, mixinsList []string, publish bool) error {
+func (c Creator) buildCnbImage(dockerfilePath, baseTag, baseRef, description, packageMetadata string, releaseDate time.Time, mixinsList []string, publish bool) error {
 
 	mixinsJson, err := json.Marshal(mixinsList)
 	if err != nil {
@@ -158,11 +168,6 @@ func (c Creator) buildCnbImage(dockerfilePath, baseTag, baseRef, description str
 		return fmt.Errorf("failed to build cnb image: %w", err)
 	}
 
-	packageMetadata, err := c.PackageFinder.GetPackageMetadata(baseTag)
-	if err != nil {
-		return fmt.Errorf("failed to get package metadata: %w", err)
-	}
-
 	err = c.ImageClient.SetLabel(cnbTag, "io.paketo.stack.packages", packageMetadata)
 	if err != nil {
 		return fmt.Errorf("failed to set label: %w", err)
@@ -180,12 +185,12 @@ func (c Creator) buildCnbImage(dockerfilePath, baseTag, baseRef, description str
 }
 
 func (c Creator) getMixins(buildBaseTag, runBaseTag string) ([]string, []string, error) {
-	buildBasePackageList, err := c.PackageFinder.GetPackagesList(buildBaseTag)
+	buildBasePackageList, err := c.PackageFinder.GetBuildPackagesList(buildBaseTag)
 	if err != nil {
 		return nil, nil, fmt.Errorf("error getting packages from base build image: %w", err)
 	}
 
-	runBasePackageList, err := c.PackageFinder.GetPackagesList(runBaseTag)
+	runBasePackageList, err := c.PackageFinder.GetRunPackagesList(runBaseTag)
 	if err != nil {
 		return nil, nil, fmt.Errorf("error getting packages from base run image: %w", err)
 	}

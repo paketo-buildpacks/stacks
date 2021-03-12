@@ -23,7 +23,15 @@ type SourcePackage struct {
 
 type Bionic struct{}
 
-func (b Bionic) GetPackagesList(imageName string) ([]string, error) {
+func (t Bionic) GetBuildPackagesList(imageName string) ([]string, error) {
+	return t.getPackagesList(imageName)
+}
+
+func (t Bionic) GetRunPackagesList(imageName string) ([]string, error) {
+	return t.getPackagesList(imageName)
+}
+
+func (t Bionic) getPackagesList(imageName string) ([]string, error) {
 	output, err := exec.Command("docker", "run", "--rm", imageName, "dpkg-query", "-f",
 		"${Package}\\n", "-W",
 	).CombinedOutput()
@@ -34,7 +42,15 @@ func (b Bionic) GetPackagesList(imageName string) ([]string, error) {
 	return strings.Split(strings.TrimSpace(string(output)), "\n"), nil
 }
 
-func (b Bionic) GetPackageMetadata(imageName string) (string, error) {
+func (t Bionic) GetBuildPackageMetadata(imageName string) (string, error) {
+	return t.getPackageMetadata(imageName)
+}
+
+func (t Bionic) GetRunPackageMetadata(imageName string) (string, error) {
+	return t.getPackageMetadata(imageName)
+}
+
+func (t Bionic) getPackageMetadata(imageName string) (string, error) {
 	output, err := exec.Command("docker", "run", "--rm", imageName, "dpkg-query", "-W", "-f",
 		"${binary:Package};${Version};${Architecture};${binary:Summary};${source:Package};${source:Version};${source:Upstream-Version}\\n",
 	).CombinedOutput()
@@ -52,7 +68,7 @@ func (b Bionic) GetPackageMetadata(imageName string) (string, error) {
 			Name:    metadataFields[0],
 			Version: metadataFields[1],
 			Arch:    metadataFields[2],
-			Summary: metadataFields[3],
+			Summary: strings.TrimSpace(metadataFields[3]),
 			Source: SourcePackage{
 				Name:            metadataFields[4],
 				Version:         metadataFields[5],

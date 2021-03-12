@@ -8,29 +8,55 @@ import (
 )
 
 type FakePackageFinder struct {
-	GetPackageMetadataStub        func(string) (string, error)
-	getPackageMetadataMutex       sync.RWMutex
-	getPackageMetadataArgsForCall []struct {
+	GetBuildPackageMetadataStub        func(string) (string, error)
+	getBuildPackageMetadataMutex       sync.RWMutex
+	getBuildPackageMetadataArgsForCall []struct {
 		arg1 string
 	}
-	getPackageMetadataReturns struct {
+	getBuildPackageMetadataReturns struct {
 		result1 string
 		result2 error
 	}
-	getPackageMetadataReturnsOnCall map[int]struct {
+	getBuildPackageMetadataReturnsOnCall map[int]struct {
 		result1 string
 		result2 error
 	}
-	GetPackagesListStub        func(string) ([]string, error)
-	getPackagesListMutex       sync.RWMutex
-	getPackagesListArgsForCall []struct {
+	GetBuildPackagesListStub        func(string) ([]string, error)
+	getBuildPackagesListMutex       sync.RWMutex
+	getBuildPackagesListArgsForCall []struct {
 		arg1 string
 	}
-	getPackagesListReturns struct {
+	getBuildPackagesListReturns struct {
 		result1 []string
 		result2 error
 	}
-	getPackagesListReturnsOnCall map[int]struct {
+	getBuildPackagesListReturnsOnCall map[int]struct {
+		result1 []string
+		result2 error
+	}
+	GetRunPackageMetadataStub        func(string) (string, error)
+	getRunPackageMetadataMutex       sync.RWMutex
+	getRunPackageMetadataArgsForCall []struct {
+		arg1 string
+	}
+	getRunPackageMetadataReturns struct {
+		result1 string
+		result2 error
+	}
+	getRunPackageMetadataReturnsOnCall map[int]struct {
+		result1 string
+		result2 error
+	}
+	GetRunPackagesListStub        func(string) ([]string, error)
+	getRunPackagesListMutex       sync.RWMutex
+	getRunPackagesListArgsForCall []struct {
+		arg1 string
+	}
+	getRunPackagesListReturns struct {
+		result1 []string
+		result2 error
+	}
+	getRunPackagesListReturnsOnCall map[int]struct {
 		result1 []string
 		result2 error
 	}
@@ -38,127 +64,253 @@ type FakePackageFinder struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakePackageFinder) GetPackageMetadata(arg1 string) (string, error) {
-	fake.getPackageMetadataMutex.Lock()
-	ret, specificReturn := fake.getPackageMetadataReturnsOnCall[len(fake.getPackageMetadataArgsForCall)]
-	fake.getPackageMetadataArgsForCall = append(fake.getPackageMetadataArgsForCall, struct {
+func (fake *FakePackageFinder) GetBuildPackageMetadata(arg1 string) (string, error) {
+	fake.getBuildPackageMetadataMutex.Lock()
+	ret, specificReturn := fake.getBuildPackageMetadataReturnsOnCall[len(fake.getBuildPackageMetadataArgsForCall)]
+	fake.getBuildPackageMetadataArgsForCall = append(fake.getBuildPackageMetadataArgsForCall, struct {
 		arg1 string
 	}{arg1})
-	fake.recordInvocation("GetPackageMetadata", []interface{}{arg1})
-	fake.getPackageMetadataMutex.Unlock()
-	if fake.GetPackageMetadataStub != nil {
-		return fake.GetPackageMetadataStub(arg1)
+	fake.recordInvocation("GetBuildPackageMetadata", []interface{}{arg1})
+	fake.getBuildPackageMetadataMutex.Unlock()
+	if fake.GetBuildPackageMetadataStub != nil {
+		return fake.GetBuildPackageMetadataStub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getPackageMetadataReturns
+	fakeReturns := fake.getBuildPackageMetadataReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakePackageFinder) GetPackageMetadataCallCount() int {
-	fake.getPackageMetadataMutex.RLock()
-	defer fake.getPackageMetadataMutex.RUnlock()
-	return len(fake.getPackageMetadataArgsForCall)
+func (fake *FakePackageFinder) GetBuildPackageMetadataCallCount() int {
+	fake.getBuildPackageMetadataMutex.RLock()
+	defer fake.getBuildPackageMetadataMutex.RUnlock()
+	return len(fake.getBuildPackageMetadataArgsForCall)
 }
 
-func (fake *FakePackageFinder) GetPackageMetadataCalls(stub func(string) (string, error)) {
-	fake.getPackageMetadataMutex.Lock()
-	defer fake.getPackageMetadataMutex.Unlock()
-	fake.GetPackageMetadataStub = stub
+func (fake *FakePackageFinder) GetBuildPackageMetadataCalls(stub func(string) (string, error)) {
+	fake.getBuildPackageMetadataMutex.Lock()
+	defer fake.getBuildPackageMetadataMutex.Unlock()
+	fake.GetBuildPackageMetadataStub = stub
 }
 
-func (fake *FakePackageFinder) GetPackageMetadataArgsForCall(i int) string {
-	fake.getPackageMetadataMutex.RLock()
-	defer fake.getPackageMetadataMutex.RUnlock()
-	argsForCall := fake.getPackageMetadataArgsForCall[i]
+func (fake *FakePackageFinder) GetBuildPackageMetadataArgsForCall(i int) string {
+	fake.getBuildPackageMetadataMutex.RLock()
+	defer fake.getBuildPackageMetadataMutex.RUnlock()
+	argsForCall := fake.getBuildPackageMetadataArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakePackageFinder) GetPackageMetadataReturns(result1 string, result2 error) {
-	fake.getPackageMetadataMutex.Lock()
-	defer fake.getPackageMetadataMutex.Unlock()
-	fake.GetPackageMetadataStub = nil
-	fake.getPackageMetadataReturns = struct {
+func (fake *FakePackageFinder) GetBuildPackageMetadataReturns(result1 string, result2 error) {
+	fake.getBuildPackageMetadataMutex.Lock()
+	defer fake.getBuildPackageMetadataMutex.Unlock()
+	fake.GetBuildPackageMetadataStub = nil
+	fake.getBuildPackageMetadataReturns = struct {
 		result1 string
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakePackageFinder) GetPackageMetadataReturnsOnCall(i int, result1 string, result2 error) {
-	fake.getPackageMetadataMutex.Lock()
-	defer fake.getPackageMetadataMutex.Unlock()
-	fake.GetPackageMetadataStub = nil
-	if fake.getPackageMetadataReturnsOnCall == nil {
-		fake.getPackageMetadataReturnsOnCall = make(map[int]struct {
+func (fake *FakePackageFinder) GetBuildPackageMetadataReturnsOnCall(i int, result1 string, result2 error) {
+	fake.getBuildPackageMetadataMutex.Lock()
+	defer fake.getBuildPackageMetadataMutex.Unlock()
+	fake.GetBuildPackageMetadataStub = nil
+	if fake.getBuildPackageMetadataReturnsOnCall == nil {
+		fake.getBuildPackageMetadataReturnsOnCall = make(map[int]struct {
 			result1 string
 			result2 error
 		})
 	}
-	fake.getPackageMetadataReturnsOnCall[i] = struct {
+	fake.getBuildPackageMetadataReturnsOnCall[i] = struct {
 		result1 string
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakePackageFinder) GetPackagesList(arg1 string) ([]string, error) {
-	fake.getPackagesListMutex.Lock()
-	ret, specificReturn := fake.getPackagesListReturnsOnCall[len(fake.getPackagesListArgsForCall)]
-	fake.getPackagesListArgsForCall = append(fake.getPackagesListArgsForCall, struct {
+func (fake *FakePackageFinder) GetBuildPackagesList(arg1 string) ([]string, error) {
+	fake.getBuildPackagesListMutex.Lock()
+	ret, specificReturn := fake.getBuildPackagesListReturnsOnCall[len(fake.getBuildPackagesListArgsForCall)]
+	fake.getBuildPackagesListArgsForCall = append(fake.getBuildPackagesListArgsForCall, struct {
 		arg1 string
 	}{arg1})
-	fake.recordInvocation("GetPackagesList", []interface{}{arg1})
-	fake.getPackagesListMutex.Unlock()
-	if fake.GetPackagesListStub != nil {
-		return fake.GetPackagesListStub(arg1)
+	fake.recordInvocation("GetBuildPackagesList", []interface{}{arg1})
+	fake.getBuildPackagesListMutex.Unlock()
+	if fake.GetBuildPackagesListStub != nil {
+		return fake.GetBuildPackagesListStub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getPackagesListReturns
+	fakeReturns := fake.getBuildPackagesListReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakePackageFinder) GetPackagesListCallCount() int {
-	fake.getPackagesListMutex.RLock()
-	defer fake.getPackagesListMutex.RUnlock()
-	return len(fake.getPackagesListArgsForCall)
+func (fake *FakePackageFinder) GetBuildPackagesListCallCount() int {
+	fake.getBuildPackagesListMutex.RLock()
+	defer fake.getBuildPackagesListMutex.RUnlock()
+	return len(fake.getBuildPackagesListArgsForCall)
 }
 
-func (fake *FakePackageFinder) GetPackagesListCalls(stub func(string) ([]string, error)) {
-	fake.getPackagesListMutex.Lock()
-	defer fake.getPackagesListMutex.Unlock()
-	fake.GetPackagesListStub = stub
+func (fake *FakePackageFinder) GetBuildPackagesListCalls(stub func(string) ([]string, error)) {
+	fake.getBuildPackagesListMutex.Lock()
+	defer fake.getBuildPackagesListMutex.Unlock()
+	fake.GetBuildPackagesListStub = stub
 }
 
-func (fake *FakePackageFinder) GetPackagesListArgsForCall(i int) string {
-	fake.getPackagesListMutex.RLock()
-	defer fake.getPackagesListMutex.RUnlock()
-	argsForCall := fake.getPackagesListArgsForCall[i]
+func (fake *FakePackageFinder) GetBuildPackagesListArgsForCall(i int) string {
+	fake.getBuildPackagesListMutex.RLock()
+	defer fake.getBuildPackagesListMutex.RUnlock()
+	argsForCall := fake.getBuildPackagesListArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakePackageFinder) GetPackagesListReturns(result1 []string, result2 error) {
-	fake.getPackagesListMutex.Lock()
-	defer fake.getPackagesListMutex.Unlock()
-	fake.GetPackagesListStub = nil
-	fake.getPackagesListReturns = struct {
+func (fake *FakePackageFinder) GetBuildPackagesListReturns(result1 []string, result2 error) {
+	fake.getBuildPackagesListMutex.Lock()
+	defer fake.getBuildPackagesListMutex.Unlock()
+	fake.GetBuildPackagesListStub = nil
+	fake.getBuildPackagesListReturns = struct {
 		result1 []string
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakePackageFinder) GetPackagesListReturnsOnCall(i int, result1 []string, result2 error) {
-	fake.getPackagesListMutex.Lock()
-	defer fake.getPackagesListMutex.Unlock()
-	fake.GetPackagesListStub = nil
-	if fake.getPackagesListReturnsOnCall == nil {
-		fake.getPackagesListReturnsOnCall = make(map[int]struct {
+func (fake *FakePackageFinder) GetBuildPackagesListReturnsOnCall(i int, result1 []string, result2 error) {
+	fake.getBuildPackagesListMutex.Lock()
+	defer fake.getBuildPackagesListMutex.Unlock()
+	fake.GetBuildPackagesListStub = nil
+	if fake.getBuildPackagesListReturnsOnCall == nil {
+		fake.getBuildPackagesListReturnsOnCall = make(map[int]struct {
 			result1 []string
 			result2 error
 		})
 	}
-	fake.getPackagesListReturnsOnCall[i] = struct {
+	fake.getBuildPackagesListReturnsOnCall[i] = struct {
+		result1 []string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakePackageFinder) GetRunPackageMetadata(arg1 string) (string, error) {
+	fake.getRunPackageMetadataMutex.Lock()
+	ret, specificReturn := fake.getRunPackageMetadataReturnsOnCall[len(fake.getRunPackageMetadataArgsForCall)]
+	fake.getRunPackageMetadataArgsForCall = append(fake.getRunPackageMetadataArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	fake.recordInvocation("GetRunPackageMetadata", []interface{}{arg1})
+	fake.getRunPackageMetadataMutex.Unlock()
+	if fake.GetRunPackageMetadataStub != nil {
+		return fake.GetRunPackageMetadataStub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	fakeReturns := fake.getRunPackageMetadataReturns
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakePackageFinder) GetRunPackageMetadataCallCount() int {
+	fake.getRunPackageMetadataMutex.RLock()
+	defer fake.getRunPackageMetadataMutex.RUnlock()
+	return len(fake.getRunPackageMetadataArgsForCall)
+}
+
+func (fake *FakePackageFinder) GetRunPackageMetadataCalls(stub func(string) (string, error)) {
+	fake.getRunPackageMetadataMutex.Lock()
+	defer fake.getRunPackageMetadataMutex.Unlock()
+	fake.GetRunPackageMetadataStub = stub
+}
+
+func (fake *FakePackageFinder) GetRunPackageMetadataArgsForCall(i int) string {
+	fake.getRunPackageMetadataMutex.RLock()
+	defer fake.getRunPackageMetadataMutex.RUnlock()
+	argsForCall := fake.getRunPackageMetadataArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakePackageFinder) GetRunPackageMetadataReturns(result1 string, result2 error) {
+	fake.getRunPackageMetadataMutex.Lock()
+	defer fake.getRunPackageMetadataMutex.Unlock()
+	fake.GetRunPackageMetadataStub = nil
+	fake.getRunPackageMetadataReturns = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakePackageFinder) GetRunPackageMetadataReturnsOnCall(i int, result1 string, result2 error) {
+	fake.getRunPackageMetadataMutex.Lock()
+	defer fake.getRunPackageMetadataMutex.Unlock()
+	fake.GetRunPackageMetadataStub = nil
+	if fake.getRunPackageMetadataReturnsOnCall == nil {
+		fake.getRunPackageMetadataReturnsOnCall = make(map[int]struct {
+			result1 string
+			result2 error
+		})
+	}
+	fake.getRunPackageMetadataReturnsOnCall[i] = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakePackageFinder) GetRunPackagesList(arg1 string) ([]string, error) {
+	fake.getRunPackagesListMutex.Lock()
+	ret, specificReturn := fake.getRunPackagesListReturnsOnCall[len(fake.getRunPackagesListArgsForCall)]
+	fake.getRunPackagesListArgsForCall = append(fake.getRunPackagesListArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	fake.recordInvocation("GetRunPackagesList", []interface{}{arg1})
+	fake.getRunPackagesListMutex.Unlock()
+	if fake.GetRunPackagesListStub != nil {
+		return fake.GetRunPackagesListStub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	fakeReturns := fake.getRunPackagesListReturns
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakePackageFinder) GetRunPackagesListCallCount() int {
+	fake.getRunPackagesListMutex.RLock()
+	defer fake.getRunPackagesListMutex.RUnlock()
+	return len(fake.getRunPackagesListArgsForCall)
+}
+
+func (fake *FakePackageFinder) GetRunPackagesListCalls(stub func(string) ([]string, error)) {
+	fake.getRunPackagesListMutex.Lock()
+	defer fake.getRunPackagesListMutex.Unlock()
+	fake.GetRunPackagesListStub = stub
+}
+
+func (fake *FakePackageFinder) GetRunPackagesListArgsForCall(i int) string {
+	fake.getRunPackagesListMutex.RLock()
+	defer fake.getRunPackagesListMutex.RUnlock()
+	argsForCall := fake.getRunPackagesListArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakePackageFinder) GetRunPackagesListReturns(result1 []string, result2 error) {
+	fake.getRunPackagesListMutex.Lock()
+	defer fake.getRunPackagesListMutex.Unlock()
+	fake.GetRunPackagesListStub = nil
+	fake.getRunPackagesListReturns = struct {
+		result1 []string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakePackageFinder) GetRunPackagesListReturnsOnCall(i int, result1 []string, result2 error) {
+	fake.getRunPackagesListMutex.Lock()
+	defer fake.getRunPackagesListMutex.Unlock()
+	fake.GetRunPackagesListStub = nil
+	if fake.getRunPackagesListReturnsOnCall == nil {
+		fake.getRunPackagesListReturnsOnCall = make(map[int]struct {
+			result1 []string
+			result2 error
+		})
+	}
+	fake.getRunPackagesListReturnsOnCall[i] = struct {
 		result1 []string
 		result2 error
 	}{result1, result2}
@@ -167,10 +319,14 @@ func (fake *FakePackageFinder) GetPackagesListReturnsOnCall(i int, result1 []str
 func (fake *FakePackageFinder) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.getPackageMetadataMutex.RLock()
-	defer fake.getPackageMetadataMutex.RUnlock()
-	fake.getPackagesListMutex.RLock()
-	defer fake.getPackagesListMutex.RUnlock()
+	fake.getBuildPackageMetadataMutex.RLock()
+	defer fake.getBuildPackageMetadataMutex.RUnlock()
+	fake.getBuildPackagesListMutex.RLock()
+	defer fake.getBuildPackagesListMutex.RUnlock()
+	fake.getRunPackageMetadataMutex.RLock()
+	defer fake.getRunPackageMetadataMutex.RUnlock()
+	fake.getRunPackagesListMutex.RLock()
+	defer fake.getRunPackagesListMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value
