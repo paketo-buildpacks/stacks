@@ -31,7 +31,6 @@ type RecordedUSN struct {
 func main() {
 	var (
 		buildBaseImage    string
-		buildBaseImageTag string
 		buildCNBImage     string
 		runBaseImage      string
 		runCNBImage       string
@@ -44,7 +43,6 @@ func main() {
 	)
 
 	flag.StringVar(&buildBaseImage, "build-base-image", "", "Fully qualified build base image")
-	flag.StringVar(&buildBaseImageTag, "build-base-image-tag", "", "Build base image tag")
 	flag.StringVar(&buildCNBImage, "build-cnb-image", "", "Fully qualified build CNB image")
 	flag.StringVar(&runBaseImage, "run-base-image", "", "Fully qualified run base image")
 	flag.StringVar(&runCNBImage, "run-cnb-image", "", "Fully qualified run CNB image")
@@ -63,7 +61,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	digestNotes := documentDigests(runBaseImage, runCNBImage, buildBaseImage, buildCNBImage, releaseVersion, stack, buildBaseImageTag)
+	digestNotes := documentDigests(runBaseImage, runCNBImage, buildBaseImage, buildCNBImage, releaseVersion, stack)
 	receiptNotes := documentReceiptDiffs(buildReceiptDiff, runReceiptDiff)
 	usnNotes, err := documentUSNs(relevantUSNs, allUSNs, buildReceiptDiff, runReceiptDiff, releaseVersion)
 
@@ -75,14 +73,11 @@ func main() {
 	fmt.Println(digestNotes + usnNotes + receiptNotes)
 }
 
-func documentDigests(runBaseImage, runCNBImage, buildBaseImage, buildCNBImage, releaseVersion, stack, buildBaseImageTag string) string {
+func documentDigests(runBaseImage, runCNBImage, buildBaseImage, buildCNBImage, releaseVersion, stack string) string {
 	runCNBImageTag := fmt.Sprintf("%s:%s-%s-cnb", strings.Split(runCNBImage, "@")[0], releaseVersion, stack)
 	runBaseImageTag := fmt.Sprintf("%s:%s-%s", strings.Split(runBaseImage, "@")[0], releaseVersion, stack)
 	buildCNBImageTag := fmt.Sprintf("%s:%s-%s-cnb", strings.Split(buildCNBImage, "@")[0], releaseVersion, stack)
-
-	if buildBaseImageTag == "" {
-		buildBaseImageTag = fmt.Sprintf("%s:%s-%s", strings.Split(buildBaseImage, "@")[0], releaseVersion, stack)
-	}
+	buildBaseImageTag := fmt.Sprintf("%s:%s-%s", strings.Split(buildBaseImage, "@")[0], releaseVersion, stack)
 
 	digestNotes := "## Release Images\n\n" +
 		"### Runtime Base Images\n\n" +

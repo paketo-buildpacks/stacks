@@ -12,10 +12,6 @@ inputs:
   build_base_image:
     description: 'Build base image'
     required: false
-  build_base_image_tag:
-    description: 'Build base image tag'
-    default: ""
-    required: false
   build_cnb_image:
     description: 'Build CNB image'
     required: true
@@ -57,7 +53,6 @@ runs:
 
       notes="$(./release-notes-generator \
         --build-base-image "${{ inputs.build_base_image }}" \
-        --build-base-image-tag "${{ inputs.build_base_image_tag }}" \
         --build-cnb-image "${{ inputs.build_cnb_image }}" \
         --run-base-image "${{ inputs.run_base_image }}" \
         --run-cnb-image "${{ inputs.run_cnb_image }}" \

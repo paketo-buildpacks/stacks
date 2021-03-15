@@ -38,7 +38,6 @@ func testReleaseNotesGenerator(t *testing.T, when spec.G, it spec.S) {
 		releaseNotesWithoutUSNsFilePath       = "testdata/release_notes_without_usns.md"
 		releaseNotesWithoutBaseImagesFilePath = "testdata/release_notes_without_base_images.md"
 		buildBaseImage                        = "some-registry/build@sha256:some-base-sha"
-		buildBaseImageTag                     = "some-registry/build:1.1.0-base"
 		buildCNBImage                         = "some-registry/build@sha256:some-cnb-sha"
 		runBaseImage                          = "some-registry/run@sha256:some-base-sha"
 		runCNBImage                           = "some-registry/run@sha256:some-cnb-sha"
@@ -210,7 +209,6 @@ func testReleaseNotesGenerator(t *testing.T, when spec.G, it spec.S) {
 				"--all-usns", allUSNs.Name(),
 				"--release-version", releaseVersion,
 				"--stack", stack,
-				"--build-base-image-tag", buildBaseImageTag,
 			)
 			output, err := cmd.CombinedOutput()
 			require.NoError(err, string(output))
@@ -249,7 +247,6 @@ func testReleaseNotesGenerator(t *testing.T, when spec.G, it spec.S) {
 				"--all-usns", allUSNs.Name(),
 				"--release-version", releaseVersion,
 				"--stack", stack,
-				"--build-base-image-tag", buildBaseImageTag,
 			)
 			output, err := cmd.CombinedOutput()
 			require.NoError(err, string(output))
@@ -280,7 +277,6 @@ func testReleaseNotesGenerator(t *testing.T, when spec.G, it spec.S) {
 				"--all-usns", allUSNs.Name(),
 				"--release-version", releaseVersion,
 				"--stack", stack,
-				"--build-base-image-tag", buildBaseImageTag,
 			)
 			output, err := cmd.CombinedOutput()
 			require.NoError(err, string(output))
@@ -305,7 +301,6 @@ func testReleaseNotesGenerator(t *testing.T, when spec.G, it spec.S) {
 				"--all-usns", allUSNs.Name(),
 				"--release-version", releaseVersion,
 				"--stack", stack,
-				"--build-base-image-tag", buildBaseImageTag,
 			)
 			output, err := cmd.CombinedOutput()
 			require.NoError(err, string(output))

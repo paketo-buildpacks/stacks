@@ -100,6 +100,5 @@ jobs:
               "run_base_image": "${{ steps.image-shas.outputs.run_base_sha }}",
               "run_cnb_image": "${{ steps.image-shas.outputs.run_cnb_sha }}",
               "build_base_image": "${{ steps.build-cnb-images.outputs.build_base_image }}",
-              "build_base_image_tag": "${{ steps.build-cnb-images.outputs.build_base_image_tag }}",
               "build_cnb_image": "${{ steps.image-shas.outputs.build_cnb_sha }}"
             }
