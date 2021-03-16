@@ -15,10 +15,10 @@ on:
       - 'packages/full/**'
 
 env:
-  BUILD_BASE_TAG: paketobuildpacks/build-rc:${{ github.sha }}-full
-  BUILD_CNB_TAG: paketobuildpacks/build-rc:${{ github.sha }}-full-cnb
-  RUN_BASE_TAG: paketobuildpacks/run-rc:${{ github.sha }}-full
-  RUN_CNB_TAG: paketobuildpacks/run-rc:${{ github.sha }}-full-cnb
+  BUILD_BASE_TAG: paketotesting/build-rc:${{ github.sha }}-full
+  BUILD_CNB_TAG: paketotesting/build-rc:${{ github.sha }}-full-cnb
+  RUN_BASE_TAG: paketotesting/run-rc:${{ github.sha }}-full
+  RUN_CNB_TAG: paketotesting/run-rc:${{ github.sha }}-full-cnb
   STACK_ID: io.buildpacks.stacks.bionic
 
 jobs:
@@ -30,8 +30,8 @@ jobs:
 
       - name: Docker login
         run: |
-          docker login -u ${{ secrets.PAKETO_BUILDPACKS_DOCKERHUB_USERNAME }} --password-stdin \
-            < <(echo "${{ secrets.PAKETO_BUILDPACKS_DOCKERHUB_PASSWORD }}")
+          docker login -u ${{ secrets.PAKETO_TESTING_DOCKERHUB_USERNAME }} --password-stdin \
+            < <(echo "${{ secrets.PAKETO_TESTING_DOCKERHUB_PASSWORD }}")
 
       - name: Setup Go
         uses: actions/setup-go@v1
@@ -41,8 +41,8 @@ jobs:
       - name: Build and push images
         uses: paketo-buildpacks/stacks/actions/create-stack@main
         with:
-          build_destination: paketobuildpacks/build-rc
-          run_destination: paketobuildpacks/run-rc
+          build_destination: paketotesting/build-rc
+          run_destination: paketotesting/run-rc
           version: ${{ github.sha }}
           stack: full
           stacks_dir: ${GITHUB_WORKSPACE}
