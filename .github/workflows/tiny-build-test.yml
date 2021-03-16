@@ -14,9 +14,9 @@ on:
       - 'bionic/cnb/build/Dockerfile'
 
 env:
-  RUN_BASE_TAG: paketobuildpacks/run-rc:${{ github.sha }}-tiny
-  RUN_CNB_TAG: paketobuildpacks/run-rc:${{ github.sha }}-tiny-cnb
-  BUILD_CNB_TAG: paketobuildpacks/build-rc:${{ github.sha }}-tiny-cnb
+  RUN_BASE_TAG: paketotesting/run-rc:${{ github.sha }}-tiny
+  RUN_CNB_TAG: paketotesting/run-rc:${{ github.sha }}-tiny-cnb
+  BUILD_CNB_TAG: paketotesting/build-rc:${{ github.sha }}-tiny-cnb
   STACK_ID: io.paketo.stacks.tiny
 
 jobs:
@@ -33,14 +33,14 @@ jobs:
 
       - name: Docker login
         run: |
-          docker login -u ${{ secrets.PAKETO_BUILDPACKS_DOCKERHUB_USERNAME }} --password-stdin \
-            < <(echo "${{ secrets.PAKETO_BUILDPACKS_DOCKERHUB_PASSWORD }}")
+          docker login -u ${{ secrets.PAKETO_TESTING_DOCKERHUB_USERNAME }} --password-stdin \
+            < <(echo "${{ secrets.PAKETO_TESTING_DOCKERHUB_PASSWORD }}")
 
       - name: Build and push images
         uses: paketo-buildpacks/stacks/actions/create-stack@main
         with:
-          build_destination: paketobuildpacks/build-rc
-          run_destination: paketobuildpacks/run-rc
+          build_destination: paketotesting/build-rc
+          run_destination: paketotesting/run-rc
           version: ${{ github.sha }}
           stack: tiny
           stacks_dir: ${GITHUB_WORKSPACE}
