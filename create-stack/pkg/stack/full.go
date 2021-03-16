@@ -16,43 +16,45 @@ type FullStack struct {
 	cnbRunDockerfilePath    string
 }
 
-func (bs FullStack) GetSources() string {
-	return bs.sources
+func (fs FullStack) GetBaseBuildArgs() []string {
+	return []string{
+		fmt.Sprintf("sources=%s", fs.sources),
+		fmt.Sprintf("packages=%s", fs.buildPackages),
+	}
 }
 
-func (bs FullStack) GetBuildPackages() string {
-	return bs.buildPackages
+func (fs FullStack) GetBaseRunArgs() []string {
+	return []string{
+		fmt.Sprintf("sources=%s", fs.sources),
+		fmt.Sprintf("packages=%s", fs.runPackages),
+	}
 }
 
-func (bs FullStack) GetRunPackages() string {
-	return bs.runPackages
-}
-
-func (bs FullStack) GetName() string {
+func (fs FullStack) GetName() string {
 	return "full"
 }
 
-func (bs FullStack) GetBaseBuildDockerfilePath() string {
-	return bs.baseBuildDockerfilePath
+func (fs FullStack) GetBaseBuildDockerfilePath() string {
+	return fs.baseBuildDockerfilePath
 }
 
-func (bs FullStack) GetBaseRunDockerfilePath() string {
-	return bs.baseRunDockerfilePath
+func (fs FullStack) GetBaseRunDockerfilePath() string {
+	return fs.baseRunDockerfilePath
 }
 
-func (bs FullStack) GetCNBBuildDockerfilePath() string {
-	return bs.cnbBuildDockerfilePath
+func (fs FullStack) GetCNBBuildDockerfilePath() string {
+	return fs.cnbBuildDockerfilePath
 }
 
-func (bs FullStack) GetCNBRunDockerfilePath() string {
-	return bs.cnbRunDockerfilePath
+func (fs FullStack) GetCNBRunDockerfilePath() string {
+	return fs.cnbRunDockerfilePath
 }
 
-func (bs FullStack) GetBuildDescription() string {
+func (fs FullStack) GetBuildDescription() string {
 	return "ubuntu:bionic + many common C libraries and utilities"
 }
 
-func (bs FullStack) GetRunDescription() string {
+func (fs FullStack) GetRunDescription() string {
 	return "ubuntu:bionic + many common C libraries and utilities"
 }
 

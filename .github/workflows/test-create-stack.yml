@@ -10,6 +10,7 @@ on:
       - 'bionic/**'
       - 'create-stack/**'
       - 'packages/**'
+      - 'tiny/**'
   push:
     branches: [ main ]
     paths:
@@ -18,6 +19,7 @@ on:
       - 'bionic/**'
       - 'create-stack/**'
       - 'packages/**'
+      - 'tiny/**'
 
 jobs:
   test-create-stack:
@@ -25,6 +27,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+
+      - name: Setup Go
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.16
 
       - name: Docker login
         run: |
@@ -34,4 +41,7 @@ jobs:
       - name: Run Tests
         run: |
           cd create-stack
+          go test ./...
+
+          cd test/acceptance
           go test -timeout 30m ./...

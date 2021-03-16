@@ -37,9 +37,8 @@ func testCreator(t *testing.T, when spec.G, it spec.S) {
 
 	it("create the bionic stack", func() {
 		fakeStack.GetNameReturns("test-stack")
-		fakeStack.GetSourcesReturns("test-sources")
-		fakeStack.GetBuildPackagesReturns("test-build-packages")
-		fakeStack.GetRunPackagesReturns("test-run-packages")
+		fakeStack.GetBaseBuildArgsReturns([]string{"sources=test-sources", "packages=test-build-packages"})
+		fakeStack.GetBaseRunArgsReturns([]string{"sources=test-sources", "packages=test-run-packages"})
 		fakeStack.GetBaseBuildDockerfilePathReturns("test-base-build-dockerfile-path")
 		fakeStack.GetBaseRunDockerfilePathReturns("test-base-run-dockerfile-path")
 		fakeStack.GetCNBBuildDockerfilePathReturns("test-cnb-build-dockerfile-path")
@@ -49,7 +48,7 @@ func testCreator(t *testing.T, when spec.G, it spec.S) {
 
 		fakeMixinsGenerator.GetMixinsReturns([]string{"test1", "test2", "build:test3"}, []string{"test1", "test2", "run:test4"})
 
-		err := creator.CreateBionicStack(fakeStack, "test-build-base-tag", "test-run-base-tag", false)
+		err := creator.CreateStack(fakeStack, "test-build-base-tag", "test-run-base-tag", false)
 		require.NoError(err)
 
 		imagePullTag, pullAuth := fakeImageClient.PullArgsForCall(0)
@@ -109,9 +108,8 @@ func testCreator(t *testing.T, when spec.G, it spec.S) {
 
 	it("create the bionic stack and publish", func() {
 		fakeStack.GetNameReturns("test-stack")
-		fakeStack.GetSourcesReturns("test-sources")
-		fakeStack.GetBuildPackagesReturns("test-build-packages")
-		fakeStack.GetRunPackagesReturns("test-run-packages")
+		fakeStack.GetBaseBuildArgsReturns([]string{"sources=test-sources", "packages=test-build-packages"})
+		fakeStack.GetBaseRunArgsReturns([]string{"sources=test-sources", "packages=test-run-packages"})
 		fakeStack.GetBaseBuildDockerfilePathReturns("test-base-build-dockerfile-path")
 		fakeStack.GetBaseRunDockerfilePathReturns("test-base-run-dockerfile-path")
 		fakeStack.GetCNBBuildDockerfilePathReturns("test-cnb-build-dockerfile-path")
@@ -124,7 +122,7 @@ func testCreator(t *testing.T, when spec.G, it spec.S) {
 
 		fakeMixinsGenerator.GetMixinsReturns([]string{"test1", "test2", "build:test3"}, []string{"test1", "test2", "run:test4"})
 
-		err := creator.CreateBionicStack(fakeStack, "test-build-base-tag:latest-test-stack", "test-run-base-tag:latest-test-stack", true)
+		err := creator.CreateStack(fakeStack, "test-build-base-tag:latest-test-stack", "test-run-base-tag:latest-test-stack", true)
 		require.NoError(err)
 
 		imagePullTag, pullAuth := fakeImageClient.PullArgsForCall(0)

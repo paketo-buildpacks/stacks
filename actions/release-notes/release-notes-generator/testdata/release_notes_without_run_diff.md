@@ -17,7 +17,7 @@
 - Digest: `some-registry/build@sha256:some-cnb-sha`
 
 #### Source Image (e.g., for Dockerfile builds):
-- Tag: **`some-registry/build:1.1.0-base`**
+- Tag: **`some-registry/build:1.0-tiny`**
 - Digest: `some-registry/build@sha256:some-base-sha`
 ## Patched USNs
 [USN-4498-1](https://ubuntu.com/security/notices/USN-4498-1):  Loofah vulnerability

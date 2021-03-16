@@ -18,16 +18,18 @@ type BaseStack struct {
 
 const arch = "x86_64"
 
-func (bs BaseStack) GetSources() string {
-	return bs.sources
+func (bs BaseStack) GetBaseBuildArgs() []string {
+	return []string{
+		fmt.Sprintf("sources=%s", bs.sources),
+		fmt.Sprintf("packages=%s", bs.buildPackages),
+	}
 }
 
-func (bs BaseStack) GetBuildPackages() string {
-	return bs.buildPackages
-}
-
-func (bs BaseStack) GetRunPackages() string {
-	return bs.runPackages
+func (bs BaseStack) GetBaseRunArgs() []string {
+	return []string{
+		fmt.Sprintf("sources=%s", bs.sources),
+		fmt.Sprintf("packages=%s", bs.runPackages),
+	}
 }
 
 func (bs BaseStack) GetName() string {

@@ -1,6 +1,6 @@
 module github.com/paketo-buildpacks/stacks/create-stack
 
-go 1.15
+go 1.16
 
 require (
 	github.com/google/go-containerregistry v0.4.0

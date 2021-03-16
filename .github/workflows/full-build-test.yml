@@ -33,6 +33,11 @@ jobs:
           docker login -u ${{ secrets.PAKETO_BUILDPACKS_DOCKERHUB_USERNAME }} --password-stdin \
             < <(echo "${{ secrets.PAKETO_BUILDPACKS_DOCKERHUB_PASSWORD }}")
 
+      - name: Setup Go
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.16
+
       - name: Build and push images
         uses: paketo-buildpacks/stacks/actions/create-stack@main
         with:
