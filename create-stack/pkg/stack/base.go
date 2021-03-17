@@ -32,6 +32,14 @@ func (bs BaseStack) GetBaseRunArgs() []string {
 	}
 }
 
+func (bs BaseStack) GetCNBBuildArgs() []string {
+	return []string{}
+}
+
+func (bs BaseStack) GetCNBRunArgs() []string {
+	return []string{}
+}
+
 func (bs BaseStack) GetName() string {
 	return "base"
 }

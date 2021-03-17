@@ -35,6 +35,8 @@ type Stack interface {
 	GetName() string
 	GetBaseBuildArgs() []string
 	GetBaseRunArgs() []string
+	GetCNBBuildArgs() []string
+	GetCNBRunArgs() []string
 	GetBaseBuildDockerfilePath() string
 	GetBaseRunDockerfilePath() string
 	GetCNBBuildDockerfilePath() string
@@ -102,13 +104,13 @@ func (c Creator) buildCnbStackImages(stack Stack, buildBaseTag, runBaseTag, buil
 	}
 
 	err = c.buildCnbImage(stack.GetCNBBuildDockerfilePath(), buildBaseTag, buildBaseRef, stack.GetBuildDescription(),
-		buildPackageMetadata, releaseDate, buildMixins, publish)
+		buildPackageMetadata, releaseDate, buildMixins, stack.GetCNBBuildArgs(), publish)
 	if err != nil {
 		return fmt.Errorf("error building cnb build image: %w", err)
 	}
 
 	err = c.buildCnbImage(stack.GetCNBRunDockerfilePath(), runBaseTag, runBaseRef, stack.GetRunDescription(),
-		runPackageMetadata, releaseDate, runMixins, publish)
+		runPackageMetadata, releaseDate, runMixins, stack.GetCNBRunArgs(), publish)
 	if err != nil {
 		return fmt.Errorf("error building cnb run image: %w", err)
 	}
@@ -133,7 +135,7 @@ func (c Creator) buildBaseImage(tag, dockerfilePath string, dockerBuildArgs []st
 	return "", nil
 }
 
-func (c Creator) buildCnbImage(dockerfilePath, baseTag, baseRef, description, packageMetadata string, releaseDate time.Time, mixinsList []string, publish bool) error {
+func (c Creator) buildCnbImage(dockerfilePath, baseTag, baseRef, description, packageMetadata string, releaseDate time.Time, mixinsList, additionalBuildArgs []string, publish bool) error {
 
 	mixinsJson, err := json.Marshal(mixinsList)
 	if err != nil {
@@ -157,12 +159,16 @@ func (c Creator) buildCnbImage(dockerfilePath, baseTag, baseRef, description, pa
 		return fmt.Errorf("failed to marshal metadata: %w", err)
 	}
 
-	err = c.ImageClient.Build(cnbTag, dockerfilePath,
+	buildArgs := []string{
 		fmt.Sprintf(`base_image=%s`, baseTag),
 		fmt.Sprintf("description=%s", description),
 		fmt.Sprintf("mixins=%s", string(mixinsJson)),
 		fmt.Sprintf("released=%s", releaseDate.Format(time.RFC3339)),
-		fmt.Sprintf(`metadata=%s`, string(metadataMap)))
+		fmt.Sprintf(`metadata=%s`, string(metadataMap)),
+	}
+	buildArgs = append(buildArgs, additionalBuildArgs...)
+
+	err = c.ImageClient.Build(cnbTag, dockerfilePath, buildArgs...)
 
 	if err != nil {
 		return fmt.Errorf("failed to build cnb image: %w", err)

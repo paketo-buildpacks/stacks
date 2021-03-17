@@ -177,4 +177,18 @@ func testCreator(t *testing.T, when spec.G, it spec.S) {
 
 		assert.Equal(buildReleaseDate, runReleaseDate)
 	})
+
+	it("passes additional args when building CNB image", func() {
+		fakeStack.GetCNBBuildArgsReturns([]string{"stack_id=some.stack.id"})
+		fakeStack.GetCNBRunArgsReturns([]string{"stack_id=some.stack.id"})
+
+		err := creator.CreateStack(fakeStack, "test-build-base-tag:latest-test-stack", "test-run-base-tag:latest-test-stack", true)
+		require.NoError(err)
+
+		_, _, actualCNBBuildArgs := fakeImageClient.BuildArgsForCall(2)
+		assert.Contains(actualCNBBuildArgs, "stack_id=some.stack.id")
+
+		_, _, actualCNBRunArgs := fakeImageClient.BuildArgsForCall(3)
+		assert.Contains(actualCNBRunArgs, "stack_id=some.stack.id")
+	})
 }
