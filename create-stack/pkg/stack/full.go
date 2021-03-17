@@ -30,6 +30,14 @@ func (fs FullStack) GetBaseRunArgs() []string {
 	}
 }
 
+func (fs FullStack) GetCNBBuildArgs() []string {
+	return []string{}
+}
+
+func (fs FullStack) GetCNBRunArgs() []string {
+	return []string{}
+}
+
 func (fs FullStack) GetName() string {
 	return "full"
 }

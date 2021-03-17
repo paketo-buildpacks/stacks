@@ -27,6 +27,16 @@ func (ts TinyStack) GetBaseRunArgs() []string {
 	return []string{}
 }
 
+func (ts TinyStack) GetCNBBuildArgs() []string {
+	return []string{
+		"stack_id=io.paketo.stacks.tiny",
+	}
+}
+
+func (ts TinyStack) GetCNBRunArgs() []string {
+	return []string{}
+}
+
 func (ts TinyStack) GetName() string {
 	return "tiny"
 }

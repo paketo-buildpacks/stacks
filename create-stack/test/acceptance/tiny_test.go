@@ -89,7 +89,7 @@ func testCreateStackTiny(t *testing.T, when spec.G, it spec.S) {
 		err = json.Unmarshal(output, &buildImageConfig)
 		require.NoError(err)
 
-		assertCommonLabels(t, BionicStackID, buildImageConfig)
+		assertCommonLabels(t, TinyStackID, buildImageConfig)
 
 		buildDescription := "ubuntu:bionic + openssl + CA certs + compilers + shell utilities"
 		assert.Equal(buildDescription, buildImageConfig.StackLabels.Description)
