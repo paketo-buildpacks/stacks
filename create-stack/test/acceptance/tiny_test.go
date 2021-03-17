@@ -123,7 +123,6 @@ func testCreateStackTiny(t *testing.T, when spec.G, it spec.S) {
 		assert.JSONEq(`{}`, runImageConfig.StackLabels.Metadata)
 
 		assert.Contains(runImageConfig.StackLabels.Mixins, `"ca-certificates"`)
-		assert.Contains(runImageConfig.StackLabels.Mixins, `"run:netbase"`)
 		assert.NotContains(runImageConfig.StackLabels.Mixins, "build:")
 
 		runReleaseDate, err := time.Parse(time.RFC3339, runImageConfig.StackLabels.Released)
