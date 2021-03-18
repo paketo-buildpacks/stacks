@@ -36,7 +36,7 @@ jobs:
       - name: Docker login
         run: |
           docker login -u ${{ secrets.PAKETO_TESTING_DOCKERHUB_USERNAME }} --password-stdin \
-            < <(echo "${{ secrets.PAKETO_TESTING_DOCKERHUB_PASSWORD }}")
+            < <(echo '${{ secrets.PAKETO_TESTING_DOCKERHUB_PASSWORD }}')
 
       - name: Build and push images
         uses: paketo-buildpacks/stacks/actions/create-stack@main
