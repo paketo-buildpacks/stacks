@@ -24,6 +24,20 @@ inputs:
     required: true
     default: false
 
+outputs:
+  build_base_sha:
+    description: Build base image SHA
+    value: ${{ steps.image-shas.outputs.build_base_sha }}
+  build_cnb_sha:
+    description: Build CNB image SHA
+    value: ${{ steps.image-shas.outputs.build_cnb_sha }}
+  run_base_sha:
+    description: Run base image SHA
+    value: ${{ steps.image-shas.outputs.run_base_sha }}
+  run_cnb_sha:
+    description: Run CNB image SHA
+    value: ${{ steps.image-shas.outputs.run_cnb_sha }}
+
 runs:
   using: 'composite'
   steps:
@@ -52,3 +66,18 @@ runs:
           "${publish}"
 
         rm -f ./create-stack
+
+    - id: image-shas
+      run: |
+        build_base_tag='${{ inputs.build_destination }}:${{ inputs.version }}-${{ inputs.stack }}'
+        run_base_tag='${{ inputs.run_destination }}:${{ inputs.version }}-${{ inputs.stack }}'
+
+        build_base_sha="$(skopeo inspect "docker://${build_base_tag}" | jq -r '"\(.Name)@\(.Digest)"')"
+        build_cnb_sha="$(skopeo inspect "docker://${build_base_tag}-cnb" | jq -r '"\(.Name)@\(.Digest)"')"
+        run_base_sha="$(skopeo inspect "docker://${run_base_tag}" | jq -r '"\(.Name)@\(.Digest)"')"
+        run_cnb_sha="$(skopeo inspect "docker://${run_base_tag}-cnb" | jq -r '"\(.Name)@\(.Digest)"')"
+
+        echo "::set-output name=build_base_sha::${build_base_sha}"
+        echo "::set-output name=build_cnb_sha::${build_cnb_sha}"
+        echo "::set-output name=run_base_sha::${run_base_sha}"
+        echo "::set-output name=run_cnb_sha::${run_cnb_sha}"
