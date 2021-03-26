@@ -52,16 +52,16 @@ runs:
       go build -o ./release-notes-generator "${{ github.action_path }}/release-notes-generator/main.go"
 
       notes="$(./release-notes-generator \
-        --build-base-image "${{ inputs.build_base_image }}" \
-        --build-cnb-image "${{ inputs.build_cnb_image }}" \
-        --run-base-image "${{ inputs.run_base_image }}" \
-        --run-cnb-image "${{ inputs.run_cnb_image }}" \
-        --build-receipt-diff "${{ inputs.build_receipt_diff }}" \
-        --run-receipt-diff "${{ inputs.run_receipt_diff }}" \
-        --relevant-usns "${{ inputs.relevant_usns }}" \
-        --all-usns "${{ inputs.all_usns }}" \
-        --release-version "${{ inputs.release_version }}" \
-        --stack "${{ inputs.stack }}"
+        --build-base-image="${{ inputs.build_base_image }}" \
+        --build-cnb-image="${{ inputs.build_cnb_image }}" \
+        --run-base-image="${{ inputs.run_base_image }}" \
+        --run-cnb-image="${{ inputs.run_cnb_image }}" \
+        --build-receipt-diff="${{ inputs.build_receipt_diff }}" \
+        --run-receipt-diff="${{ inputs.run_receipt_diff }}" \
+        --relevant-usns="${{ inputs.relevant_usns }}" \
+        --all-usns="${{ inputs.all_usns }}" \
+        --release-version="${{ inputs.release_version }}" \
+        --stack="${{ inputs.stack }}"
       )"
       notes="${notes//'%'/'%25'}"
       notes="${notes//$'\n'/'%0A'}"

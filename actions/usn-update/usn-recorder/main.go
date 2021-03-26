@@ -2,8 +2,8 @@ package main
 
 import (
 	"encoding/json"
-	"flag"
 	"fmt"
+	"github.com/jessevdk/go-flags"
 	"io/ioutil"
 	"os"
 	"regexp"
@@ -29,26 +29,19 @@ type RecordedUSN struct {
 }
 
 func main() {
-	var (
-		buildReceiptPath    string
-		runReceiptPath      string
-		fullUSNListPath     string
-		relevantUSNListPath string
-	)
+	var opts struct {
+		BuildReceiptPath    string `long:"build-receipt" description:"Path to build receipt" required:"true"`
+		RunReceiptPath      string `long:"run-receipt" description:"Path to run receipt" required:"true"`
+		FullUSNListPath     string `long:"full-usn-list" description:"Path to full USN list" required:"true"`
+		RelevantUSNListPath string `long:"relevant-usn-list" description:"Path to relevant USN list" required:"true"`
+	}
 
-	flag.StringVar(&buildReceiptPath, "build-receipt", "", "Path to build receipt")
-	flag.StringVar(&runReceiptPath, "run-receipt", "", "Path to run receipt")
-	flag.StringVar(&fullUSNListPath, "full-usn-list", "", "Path to full USN list")
-	flag.StringVar(&relevantUSNListPath, "relevant-usn-list", "", "Path to relevant USN list")
-
-	flag.Parse()
-
-	if buildReceiptPath == "" || runReceiptPath == "" || fullUSNListPath == "" || relevantUSNListPath == "" {
-		flag.Usage()
+	_, err := flags.Parse(&opts)
+	if err != nil {
 		os.Exit(1)
 	}
 
-	err := recordRelevantUSNs(buildReceiptPath, runReceiptPath, fullUSNListPath, relevantUSNListPath)
+	err = recordRelevantUSNs(opts.BuildReceiptPath, opts.RunReceiptPath, opts.FullUSNListPath, opts.RelevantUSNListPath)
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "Error checking USNs: %s\n", err.Error())
 		os.Exit(1)

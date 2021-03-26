@@ -199,16 +199,16 @@ func testReleaseNotesGenerator(t *testing.T, when spec.G, it spec.S) {
 +ii  ruby-boofah      1.6.12ubuntu0.1      amd64`
 
 			cmd := exec.Command(cliPath,
-				"--build-base-image", buildBaseImage,
-				"--build-cnb-image", buildCNBImage,
-				"--run-base-image", runBaseImage,
-				"--run-cnb-image", runCNBImage,
-				"--build-receipt-diff", buildReceiptDiff,
-				"--run-receipt-diff", runReceiptDiff,
-				"--relevant-usns", relevantUSNs.Name(),
-				"--all-usns", allUSNs.Name(),
-				"--release-version", releaseVersion,
-				"--stack", stack,
+				"--build-base-image="+buildBaseImage,
+				"--build-cnb-image="+buildCNBImage,
+				"--run-base-image="+runBaseImage,
+				"--run-cnb-image="+runCNBImage,
+				"--build-receipt-diff="+buildReceiptDiff,
+				"--run-receipt-diff="+runReceiptDiff,
+				"--relevant-usns="+relevantUSNs.Name(),
+				"--all-usns="+allUSNs.Name(),
+				"--release-version="+releaseVersion,
+				"--stack="+stack,
 			)
 			output, err := cmd.CombinedOutput()
 			require.NoError(err, string(output))
@@ -237,16 +237,16 @@ func testReleaseNotesGenerator(t *testing.T, when spec.G, it spec.S) {
 +ii  ruby-loofah  1.6.12ubuntu0.1  amd64  some-description`
 
 			cmd := exec.Command(cliPath,
-				"--build-base-image", buildBaseImage,
-				"--build-cnb-image", buildCNBImage,
-				"--run-base-image", runBaseImage,
-				"--run-cnb-image", runCNBImage,
-				"--build-receipt-diff", buildReceiptDiff,
-				"--run-receipt-diff", "",
-				"--relevant-usns", relevantUSNs.Name(),
-				"--all-usns", allUSNs.Name(),
-				"--release-version", releaseVersion,
-				"--stack", stack,
+				"--build-base-image="+buildBaseImage,
+				"--build-cnb-image="+buildCNBImage,
+				"--run-base-image="+runBaseImage,
+				"--run-cnb-image="+runCNBImage,
+				"--build-receipt-diff="+buildReceiptDiff,
+				"--run-receipt-diff=",
+				"--relevant-usns="+relevantUSNs.Name(),
+				"--all-usns="+allUSNs.Name(),
+				"--release-version="+releaseVersion,
+				"--stack="+stack,
 			)
 			output, err := cmd.CombinedOutput()
 			require.NoError(err, string(output))
@@ -267,16 +267,16 @@ func testReleaseNotesGenerator(t *testing.T, when spec.G, it spec.S) {
 +ii  ruby-loofah  1.6.12ubuntu0.1  amd64  some description`
 
 			cmd := exec.Command(cliPath,
-				"--build-base-image", buildBaseImage,
-				"--build-cnb-image", buildCNBImage,
-				"--run-base-image", runBaseImage,
-				"--run-cnb-image", runCNBImage,
-				"--build-receipt-diff", buildReceiptDiff,
-				"--run-receipt-diff", runReceiptDiff,
-				"--relevant-usns", relevantUSNs.Name(),
-				"--all-usns", allUSNs.Name(),
-				"--release-version", releaseVersion,
-				"--stack", stack,
+				"--build-base-image="+buildBaseImage,
+				"--build-cnb-image="+buildCNBImage,
+				"--run-base-image="+runBaseImage,
+				"--run-cnb-image="+runCNBImage,
+				"--build-receipt-diff="+buildReceiptDiff,
+				"--run-receipt-diff="+runReceiptDiff,
+				"--relevant-usns="+relevantUSNs.Name(),
+				"--all-usns="+allUSNs.Name(),
+				"--release-version="+releaseVersion,
+				"--stack="+stack,
 			)
 			output, err := cmd.CombinedOutput()
 			require.NoError(err, string(output))
@@ -291,16 +291,16 @@ func testReleaseNotesGenerator(t *testing.T, when spec.G, it spec.S) {
 			require.NoError(err)
 
 			cmd := exec.Command(cliPath,
-				"--build-base-image", "",
-				"--build-cnb-image", buildCNBImage,
-				"--run-base-image", "",
-				"--run-cnb-image", runCNBImage,
-				"--build-receipt-diff", "",
-				"--run-receipt-diff", "",
-				"--relevant-usns", relevantUSNs.Name(),
-				"--all-usns", allUSNs.Name(),
-				"--release-version", releaseVersion,
-				"--stack", stack,
+				"--build-base-image=",
+				"--build-cnb-image="+buildCNBImage,
+				"--run-base-image=",
+				"--run-cnb-image="+runCNBImage,
+				"--build-receipt-diff=",
+				"--run-receipt-diff=",
+				"--relevant-usns="+relevantUSNs.Name(),
+				"--all-usns="+allUSNs.Name(),
+				"--release-version="+releaseVersion,
+				"--stack="+stack,
 			)
 			output, err := cmd.CombinedOutput()
 			require.NoError(err, string(output))
