@@ -25,7 +25,8 @@ runs:
       #!/usr/bin/env bash
       set -euo pipefail
 
-      go build -o ./usn-recorder "${{ github.action_path }}/usn-recorder/main.go"
+      cd "${{ github.action_path }}/usn-recorder"
+      go build -o ./usn-recorder .
 
       ./usn-recorder \
         --build-receipt "${{ inputs.build_receipt }}" \
