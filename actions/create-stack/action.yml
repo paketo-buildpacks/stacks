@@ -68,6 +68,7 @@ runs:
         rm -f ./create-stack
 
     - id: image-shas
+      shell: bash
       run: |
         build_base_tag='${{ inputs.build_destination }}:${{ inputs.version }}-${{ inputs.stack }}'
         run_base_tag='${{ inputs.run_destination }}:${{ inputs.version }}-${{ inputs.stack }}'
