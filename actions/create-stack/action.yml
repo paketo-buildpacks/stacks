@@ -44,7 +44,7 @@ runs:
         #!/usr/bin/env bash
         set -euo pipefail
 
-        stacks_dir="$(cd "${{ github.action_path }}" && cd .. && pwd)"
+        stacks_dir="$(cd "${{ github.action_path }}" && cd ../.. && pwd)"
 
         cd "${stacks_dir}/create-stack"
 
