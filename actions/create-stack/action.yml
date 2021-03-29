@@ -16,9 +16,6 @@ inputs:
   stack:
     description: 'Stack name (base, full)'
     required: true
-  stacks_dir:
-    description: 'Stacks repo base directory'
-    required: true
   publish:
     description: 'Push to docker registry'
     required: true
@@ -47,7 +44,9 @@ runs:
         #!/usr/bin/env bash
         set -euo pipefail
 
-        cd "${{ inputs.stacks_dir }}/create-stack"
+        stacks_dir="$(cd "${{ github.action_path }}" && cd .. && pwd)"
+
+        cd "${stacks_dir}/create-stack"
 
         go build
 
@@ -62,7 +61,7 @@ runs:
           --run-destination "${{ inputs.run_destination }}" \
           --version "${{ inputs.version }}" \
           --stack "${{ inputs.stack }}" \
-          --stacks-dir "${{ inputs.stacks_dir }}" \
+          --stacks-dir "${stacks_dir}" \
           "${publish}"
 
         rm -f ./create-stack
