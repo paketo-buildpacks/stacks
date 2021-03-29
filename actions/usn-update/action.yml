@@ -35,4 +35,4 @@ runs:
         --full-usn-list "${{ inputs.full_usn_list }}" \
         --relevant-usn-list "${{ inputs.relevant_usn_list }}"
 
-      rm -f "${{ github.action_path }}/usn-recorder"
+      rm -f "${{ github.action_path }}/usn-recorder/usn-recorder"
