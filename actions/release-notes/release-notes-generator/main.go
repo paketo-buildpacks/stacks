@@ -2,8 +2,8 @@ package main
 
 import (
 	"encoding/json"
-	"flag"
 	"fmt"
+	"github.com/jessevdk/go-flags"
 	"io/ioutil"
 	"os"
 	"regexp"
@@ -29,41 +29,27 @@ type RecordedUSN struct {
 }
 
 func main() {
-	var (
-		buildBaseImage    string
-		buildCNBImage     string
-		runBaseImage      string
-		runCNBImage       string
-		buildReceiptDiff  string
-		runReceiptDiff    string
-		relevantUSNs      string
-		allUSNs           string
-		releaseVersion    string
-		stack             string
-	)
+	var opts struct {
+		BuildBaseImage   string `long:"build-base-image" description:"Fully qualified build base image"`
+		BuildCNBImage    string `long:"build-cnb-image" description:"Fully qualified build CNB image" required:"true"`
+		RunBaseImage     string `long:"run-base-image" description:"Fully qualified run base image"`
+		RunCNBImage      string `long:"run-cnb-image" description:"Fully qualified run CNB image" required:"true"`
+		BuildReceiptDiff string `long:"build-receipt-diff" description:"Build receipt diff"`
+		RunReceiptDiff   string `long:"run-receipt-diff" description:"Run receipt diff"`
+		RelevantUSNs     string `long:"relevant-usns" description:"Path to relevant USNs" required:"true"`
+		AllUSNs          string `long:"all-usns" description:"Path to all USNs" required:"true"`
+		ReleaseVersion   string `long:"release-version" description:"Release version" required:"true"`
+		Stack            string `long:"stack" description:"Stack" required:"true"`
+	}
 
-	flag.StringVar(&buildBaseImage, "build-base-image", "", "Fully qualified build base image")
-	flag.StringVar(&buildCNBImage, "build-cnb-image", "", "Fully qualified build CNB image")
-	flag.StringVar(&runBaseImage, "run-base-image", "", "Fully qualified run base image")
-	flag.StringVar(&runCNBImage, "run-cnb-image", "", "Fully qualified run CNB image")
-	flag.StringVar(&buildReceiptDiff, "build-receipt-diff", "", "Build receipt diff")
-	flag.StringVar(&runReceiptDiff, "run-receipt-diff", "", "Run receipt diff")
-	flag.StringVar(&relevantUSNs, "relevant-usns", "", "Path to relevant USNs")
-	flag.StringVar(&allUSNs, "all-usns", "", "Path to all USNs")
-	flag.StringVar(&releaseVersion, "release-version", "", "Release version")
-	flag.StringVar(&stack, "stack", "", "Stack")
-
-	flag.Parse()
-
-	if buildCNBImage == "" || runCNBImage == "" || relevantUSNs == "" || allUSNs == "" ||
-		releaseVersion == "" || stack == "" {
-		flag.Usage()
+	_, err := flags.Parse(&opts)
+	if err != nil {
 		os.Exit(1)
 	}
 
-	digestNotes := documentDigests(runBaseImage, runCNBImage, buildBaseImage, buildCNBImage, releaseVersion, stack)
-	receiptNotes := documentReceiptDiffs(buildReceiptDiff, runReceiptDiff)
-	usnNotes, err := documentUSNs(relevantUSNs, allUSNs, buildReceiptDiff, runReceiptDiff, releaseVersion)
+	digestNotes := documentDigests(opts.RunBaseImage, opts.RunCNBImage, opts.BuildBaseImage, opts.BuildCNBImage, opts.ReleaseVersion, opts.Stack)
+	receiptNotes := documentReceiptDiffs(opts.BuildReceiptDiff, opts.RunReceiptDiff)
+	usnNotes, err := documentUSNs(opts.RelevantUSNs, opts.AllUSNs, opts.BuildReceiptDiff, opts.RunReceiptDiff, opts.ReleaseVersion)
 
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "Error documenting USNs: %s\n", err.Error())

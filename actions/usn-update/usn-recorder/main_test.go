@@ -87,10 +87,10 @@ func testEntrypoint(t *testing.T, when spec.G, it spec.S) {
 		require.NoError(err)
 
 		cmd := exec.Command(cliPath,
-			"--build-receipt", buildReceiptPath,
-			"--run-receipt", runReceiptPath,
-			"--full-usn-list", fullUSNListPath,
-			"--relevant-usn-list", relevantUSNListPath)
+			"--build-receipt="+buildReceiptPath,
+			"--run-receipt="+runReceiptPath,
+			"--full-usn-list="+fullUSNListPath,
+			"--relevant-usn-list="+relevantUSNListPath)
 		output, err := cmd.CombinedOutput()
 		require.NoError(err, string(output))
 
@@ -147,10 +147,10 @@ func testEntrypoint(t *testing.T, when spec.G, it spec.S) {
 		require.NoError(err)
 
 		cmd := exec.Command(cliPath,
-			"--build-receipt", buildReceiptPath,
-			"--run-receipt", runReceiptPath,
-			"--full-usn-list", fullUSNListPath,
-			"--relevant-usn-list", relevantUSNListPath)
+			"--build-receipt="+buildReceiptPath,
+			"--run-receipt="+runReceiptPath,
+			"--full-usn-list="+fullUSNListPath,
+			"--relevant-usn-list="+relevantUSNListPath)
 		output, err := cmd.CombinedOutput()
 		require.NoError(err, string(output))
 
@@ -189,10 +189,10 @@ func testEntrypoint(t *testing.T, when spec.G, it spec.S) {
 		require.NoError(err)
 
 		cmd := exec.Command(cliPath,
-			"--build-receipt", buildReceiptPath,
-			"--run-receipt", runReceiptPath,
-			"--full-usn-list", fullUSNListPath,
-			"--relevant-usn-list", relevantUSNListPath)
+			"--build-receipt="+buildReceiptPath,
+			"--run-receipt="+runReceiptPath,
+			"--full-usn-list="+fullUSNListPath,
+			"--relevant-usn-list="+relevantUSNListPath)
 		output, err := cmd.CombinedOutput()
 		require.NoError(err, string(output))
 
