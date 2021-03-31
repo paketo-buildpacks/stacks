@@ -49,9 +49,11 @@ runs:
       #!/usr/bin/env bash
       set -euo pipefail
 
-      go build -o ./release-notes-generator "${{ github.action_path }}/release-notes-generator/main.go"
+      pushd "${{ github.action_path }}/release-notes-generator" >/dev/null
+        go build -o release-notes-generator .
+      popd >/dev/null
 
-      notes="$(./release-notes-generator \
+      notes="$("${{ github.action_path }}/release-notes-generator/release-notes-generator" \
         --build-base-image="${{ inputs.build_base_image }}" \
         --build-cnb-image="${{ inputs.build_cnb_image }}" \
         --run-base-image="${{ inputs.run_base_image }}" \
@@ -69,4 +71,4 @@ runs:
 
       echo "::set-output name=release_body::${notes}"
 
-      rm -f ./release-notes-generator
+      rm -f "${{ github.action_path }}/release-notes-generator/release-notes-generator"
