@@ -16,7 +16,7 @@ type Client struct{}
 
 func (c Client) Build(tag, dockerfilePath string, buildArgs ...string) error {
 
-	finalArgs := []string{"build", "-t", tag}
+	finalArgs := []string{"build", "-t", tag, "--no-cache"}
 
 	for _, elem := range buildArgs {
 		finalArgs = append(finalArgs, "--build-arg", elem)
