@@ -3,11 +3,11 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/jessevdk/go-flags"
 	"io/ioutil"
 	"os"
-	"regexp"
 	"strings"
+
+	"github.com/jessevdk/go-flags"
 )
 
 type USN struct {
@@ -49,7 +49,7 @@ func main() {
 
 	digestNotes := documentDigests(opts.RunBaseImage, opts.RunCNBImage, opts.BuildBaseImage, opts.BuildCNBImage, opts.ReleaseVersion, opts.Stack)
 	receiptNotes := documentReceiptDiffs(opts.BuildReceiptDiff, opts.RunReceiptDiff)
-	usnNotes, err := documentUSNs(opts.RelevantUSNs, opts.AllUSNs, opts.BuildReceiptDiff, opts.RunReceiptDiff, opts.ReleaseVersion)
+	usnNotes, err := documentUSNs(opts.RelevantUSNs, opts.AllUSNs, opts.ReleaseVersion)
 
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "Error documenting USNs: %s\n", err.Error())
@@ -92,7 +92,6 @@ func documentDigests(runBaseImage, runCNBImage, buildBaseImage, buildCNBImage, r
 }
 
 func documentReceiptDiffs(buildReceiptDiff, runReceiptDiff string) string {
-
 	var receiptNotes string
 
 	if buildReceiptDiff != "" {
@@ -148,7 +147,7 @@ func formatReceiptDiff(receiptDiff string) string {
 	return strings.TrimSpace(output)
 }
 
-func documentUSNs(relevantUSNsPath, allUSNsPath, buildReceiptDiff, runReceiptDiff, releaseVersion string) (string, error) {
+func documentUSNs(relevantUSNsPath, allUSNsPath, releaseVersion string) (string, error) {
 	relevantUSNBytes, err := ioutil.ReadFile(relevantUSNsPath)
 	if err != nil {
 		return "", fmt.Errorf("error reading relevant USNs file: %w", err)
@@ -171,80 +170,27 @@ func documentUSNs(relevantUSNsPath, allUSNsPath, buildReceiptDiff, runReceiptDif
 		return "", fmt.Errorf("error unmarshalling all USNs: %w", err)
 	}
 
-	allPkgs := append(getNewPackages(buildReceiptDiff), getNewPackages(runReceiptDiff)...)
-
 	var patchedUSNs []USN
-	for i, usn := range relevantUSNs {
-		if usn.Release == "unreleased" {
-			fullUSN := patchedUSN(usn, allUSNs, allPkgs)
+	for _, usn := range relevantUSNs {
+		if usn.Release == releaseVersion {
+			fullUSN := patchedUSN(usn, allUSNs)
 			if fullUSN.Title != "" {
 				patchedUSNs = append(patchedUSNs, fullUSN)
-				relevantUSNs[i].Release = releaseVersion
 			}
 		}
-	}
-
-	err = updateReleasedUSNs(relevantUSNs, relevantUSNsPath)
-	if err != nil {
-		return "", fmt.Errorf("error updating relevant USNs with release: %w", err)
 	}
 
 	return generateUSNNotes(patchedUSNs), nil
 }
 
-func updateReleasedUSNs(usns []RecordedUSN, usnPath string) error {
-	usnBytes, err := json.MarshalIndent(usns, "", "    ")
-	if err != nil {
-		return fmt.Errorf("error marshalling relevant USNs: %w", err)
-	}
-
-	usnFile, err := os.Create(usnPath)
-	if err != nil {
-		return fmt.Errorf("error creating new relevant USN file: %w", err)
-	}
-	defer usnFile.Close()
-
-	_, err = usnFile.Write(usnBytes)
-	if err != nil {
-		return fmt.Errorf("error writing to relevant USN file: %w", err)
-	}
-	return nil
-}
-
-func getNewPackages(receiptDiff string) []string {
-	re := regexp.MustCompile(`(?m:^\+ii\s*?)(\S+)`)
-	pkgMatches := re.FindAllStringSubmatch(receiptDiff, -1)
-
-	var pkgs []string
-	for _, match := range pkgMatches {
-		pkgs = append(pkgs, strings.Split(match[1], ":")[0])
-	}
-
-	return pkgs
-}
-
-func patchedUSN(recordedUSN RecordedUSN, allUSNs []USN, pkgs []string) USN {
+func patchedUSN(recordedUSN RecordedUSN, allUSNs []USN) USN {
 	for _, usn := range allUSNs {
 		if usn.Title == recordedUSN.Title {
-			if patchedPkg(usn.AffectedPackages, pkgs) {
-				return usn
-			}
+			return usn
 		}
 	}
 
 	return USN{}
-}
-
-func patchedPkg(affectedPkgs, allPkgs []string) bool {
-	for _, affectedPkg := range affectedPkgs {
-		for _, pkg := range allPkgs {
-			if strings.TrimSpace(affectedPkg) == strings.TrimSpace(pkg) {
-				return true
-			}
-		}
-	}
-
-	return false
 }
 
 func generateUSNNotes(usns []USN) string {

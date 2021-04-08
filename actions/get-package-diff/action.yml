@@ -2,7 +2,7 @@ name: 'Get package diff'
 description: 'Show added and removed packages for the build and run images of a stack'
 inputs:
   ref:
-    description: 'Reference to the commit which updated the packages'
+    description: 'Reference to the commit to compare packages against'
     required: true
     default: HEAD
 outputs:

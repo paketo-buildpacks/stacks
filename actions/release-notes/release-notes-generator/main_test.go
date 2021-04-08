@@ -58,11 +58,11 @@ func testReleaseNotesGenerator(t *testing.T, when spec.G, it spec.S) {
 		relevantUSNArray := []RecordedUSN{
 			{
 				Title:   "USN-4498-1: Loofah vulnerability",
-				Release: "unreleased",
+				Release: "1.0",
 			},
 			{
 				Title:   "USN-4593-1: FreeType vulnerability",
-				Release: "unreleased",
+				Release: "1.0",
 			},
 		}
 		relevantUsnArrayJson, err = json.Marshal(relevantUSNArray)
@@ -182,7 +182,7 @@ func testReleaseNotesGenerator(t *testing.T, when spec.G, it spec.S) {
 	})
 
 	when("there is a run diff, build diff, and usns", func() {
-		it("generates properly formatted release notes and updates usn release", func() {
+		it("generates properly formatted release notes", func() {
 			_, err := relevantUSNs.Write(relevantUsnArrayJson)
 			require.NoError(err)
 
@@ -214,17 +214,6 @@ func testReleaseNotesGenerator(t *testing.T, when spec.G, it spec.S) {
 			require.NoError(err, string(output))
 
 			assert.Equal(fullReleaseNotes, string(output))
-
-			relevantUSNsContent, err := ioutil.ReadFile(relevantUSNs.Name())
-			require.NoError(err)
-
-			var updatedUSNs []RecordedUSN
-			err = json.Unmarshal(relevantUSNsContent, &updatedUSNs)
-			require.NoError(err)
-
-			assert.Len(updatedUSNs, 2)
-			assert.Equal(releaseVersion, updatedUSNs[0].Release)
-			assert.Equal(releaseVersion, updatedUSNs[1].Release)
 		})
 	})
 
@@ -233,8 +222,10 @@ func testReleaseNotesGenerator(t *testing.T, when spec.G, it spec.S) {
 			_, err := relevantUSNs.Write(relevantUsnArrayJson)
 			require.NoError(err)
 
-			buildReceiptDiff := `-ii  ruby-loofah  1.6.10ubuntu0.1  amd64  some-description
-+ii  ruby-loofah  1.6.12ubuntu0.1  amd64  some-description`
+			buildReceiptDiff := `-ii  ruby-loofah  1.6.10ubuntu0.1  amd64  some description
++ii  ruby-loofah  1.6.12ubuntu0.1  amd64  some description
+-ii  libfreetype6:amd64      2.8.1-2ubuntu2      amd64  some other description
++ii  libfreetype6:amd64      2.8.1-2ubuntu2.1    amd64  some other description`
 
 			cmd := exec.Command(cliPath,
 				"--build-base-image="+buildBaseImage,
@@ -290,12 +281,17 @@ func testReleaseNotesGenerator(t *testing.T, when spec.G, it spec.S) {
 			_, err := relevantUSNs.Write(relevantUsnArrayJson)
 			require.NoError(err)
 
+			buildReceiptDiff := `-ii  ruby-loofah  1.6.10ubuntu0.1  amd64  some description
++ii  ruby-loofah  1.6.12ubuntu0.1  amd64  some description
+-ii  libfreetype6:amd64      2.8.1-2ubuntu2      amd64  some other description
++ii  libfreetype6:amd64      2.8.1-2ubuntu2.1    amd64  some other description`
+
 			cmd := exec.Command(cliPath,
 				"--build-base-image=",
 				"--build-cnb-image="+buildCNBImage,
 				"--run-base-image=",
 				"--run-cnb-image="+runCNBImage,
-				"--build-receipt-diff=",
+				"--build-receipt-diff="+buildReceiptDiff,
 				"--run-receipt-diff=",
 				"--relevant-usns="+relevantUSNs.Name(),
 				"--all-usns="+allUSNs.Name(),

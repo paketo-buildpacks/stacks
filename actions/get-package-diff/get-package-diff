@@ -7,7 +7,7 @@ get_package_diff() {
   local phase=$2
   local action=$3
 
-  package_diff="$(git diff --no-color --unified=0 "${ref}"^.."${ref}" -- "${phase}-receipt" \
+  package_diff="$(git diff --no-color --unified=0 "${ref}" -- "${phase}-receipt" \
     | grep -A999 '^@@' | grep -v '^@@' || echo -n ""
   )"
   added_packages="$(echo "${package_diff}" | grep '^+' | awk '{ print $2 }' || echo -n "")"

@@ -1,0 +1,30 @@
+name: Test USN Patch
+on:
+  workflow_dispatch: {}
+  pull_request:
+    branches: [ main ]
+    paths:
+    - '.github/workflows/test-usn-patch.yml'
+    - 'actions/usn-patch/entrypoint/**'
+  push:
+    branches: [ main ]
+    paths:
+    - '.github/workflows/test-usn-patch.yml'
+    - 'actions/usn-patch/entrypoint/**'
+
+jobs:
+  test-release-notes:
+    runs-on: ubuntu-18.04
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Setup Go
+      uses: actions/setup-go@v1
+      with:
+        go-version: 1.16
+
+    - name: Run Tests
+      run: |
+        cd actions/usn-patch/entrypoint
+        go test ./...

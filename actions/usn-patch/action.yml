@@ -1,0 +1,43 @@
+name: 'USN Patch'
+
+description: |
+  Mark patched USNs as released
+
+inputs:
+  build_receipt_diff:
+    description: 'Build receipt diff from previous release'
+    required: true
+  run_receipt_diff:
+    description: 'Run receipt diff from previous release'
+    required: true
+  relevant_usns:
+    description: 'Path to relevant USNs'
+    required: true
+  all_usns:
+    description: 'Path to all USNs'
+    required: true
+  release_version:
+    description: 'Release version'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+  - id: release-notes
+    shell: bash
+    run: |
+      #!/usr/bin/env bash
+      set -euo pipefail
+
+      pushd "${{ github.action_path }}/entrypoint" >/dev/null
+        go build -o entrypoint .
+      popd >/dev/null
+
+      "${{ github.action_path }}/entrypoint/entrypoint" \
+        --build-receipt-diff="${{ inputs.build_receipt_diff }}" \
+        --run-receipt-diff="${{ inputs.run_receipt_diff }}" \
+        --relevant-usns="${{ inputs.relevant_usns }}" \
+        --all-usns="${{ inputs.all_usns }}" \
+        --release-version="${{ inputs.release_version }}"
+
+      rm -f "${{ github.action_path }}/entrypoint/entrypoint"

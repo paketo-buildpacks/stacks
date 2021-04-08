@@ -12,9 +12,6 @@ outputs:
     value: ${{ steps.receipt-diff.outputs.build_diff }}
 
 inputs:
-  repo:
-    description: 'Repository that will have draft release reset'
-    required: true
   user:
     description: 'User for private repositories'
     required: false
@@ -33,5 +30,4 @@ runs:
 
       ${{ github.action_path }}/generate-diffs \
         "${{ inputs.user }}" \
-        "${{ inputs.token }}" \
-        "${{ inputs.repo }}"
+        "${{ inputs.token }}"
