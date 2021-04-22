@@ -11,15 +11,6 @@ on:
       - 'create-stack/**'
       - 'packages/**'
       - 'tiny/**'
-  push:
-    branches: [ main ]
-    paths:
-      - '.github/workflows/test-create-stack.yml'
-      - 'arch/**'
-      - 'bionic/**'
-      - 'create-stack/**'
-      - 'packages/**'
-      - 'tiny/**'
 
 jobs:
   test-create-stack:
@@ -45,3 +36,18 @@ jobs:
 
           cd test/acceptance
           go test -timeout 30m ./...
+
+  approve:
+    name: Auto Approve
+    if: ${{ github.event.pull_request.user.login == 'dependabot[bot]' }}
+    needs: test-create-stack
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Approve
+      uses: paketo-buildpacks/github-config/actions/pull-request/approve@main
+      with:
+        token: ${{ secrets.PAKETO_BOT_REVIEWER_GITHUB_TOKEN }}
+        number: ${{ github.event.number }}

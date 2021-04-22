@@ -6,11 +6,6 @@ on:
     paths:
     - '.github/workflows/test-usn-patch.yml'
     - 'actions/usn-patch/entrypoint/**'
-  push:
-    branches: [ main ]
-    paths:
-    - '.github/workflows/test-usn-patch.yml'
-    - 'actions/usn-patch/entrypoint/**'
 
 jobs:
   test-usn-patch:
@@ -28,3 +23,18 @@ jobs:
       run: |
         cd actions/usn-patch/entrypoint
         go test ./...
+
+  approve:
+    name: Auto Approve
+    if: ${{ github.event.pull_request.user.login == 'dependabot[bot]' }}
+    needs: test-usn-patch
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Approve
+      uses: paketo-buildpacks/github-config/actions/pull-request/approve@main
+      with:
+        token: ${{ secrets.PAKETO_BOT_REVIEWER_GITHUB_TOKEN }}
+        number: ${{ github.event.number }}
