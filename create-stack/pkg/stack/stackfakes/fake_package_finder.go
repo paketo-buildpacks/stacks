@@ -70,15 +70,16 @@ func (fake *FakePackageFinder) GetBuildPackageMetadata(arg1 string) (string, err
 	fake.getBuildPackageMetadataArgsForCall = append(fake.getBuildPackageMetadataArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.GetBuildPackageMetadataStub
+	fakeReturns := fake.getBuildPackageMetadataReturns
 	fake.recordInvocation("GetBuildPackageMetadata", []interface{}{arg1})
 	fake.getBuildPackageMetadataMutex.Unlock()
-	if fake.GetBuildPackageMetadataStub != nil {
-		return fake.GetBuildPackageMetadataStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getBuildPackageMetadataReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -133,15 +134,16 @@ func (fake *FakePackageFinder) GetBuildPackagesList(arg1 string) ([]string, erro
 	fake.getBuildPackagesListArgsForCall = append(fake.getBuildPackagesListArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.GetBuildPackagesListStub
+	fakeReturns := fake.getBuildPackagesListReturns
 	fake.recordInvocation("GetBuildPackagesList", []interface{}{arg1})
 	fake.getBuildPackagesListMutex.Unlock()
-	if fake.GetBuildPackagesListStub != nil {
-		return fake.GetBuildPackagesListStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getBuildPackagesListReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -196,15 +198,16 @@ func (fake *FakePackageFinder) GetRunPackageMetadata(arg1 string) (string, error
 	fake.getRunPackageMetadataArgsForCall = append(fake.getRunPackageMetadataArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.GetRunPackageMetadataStub
+	fakeReturns := fake.getRunPackageMetadataReturns
 	fake.recordInvocation("GetRunPackageMetadata", []interface{}{arg1})
 	fake.getRunPackageMetadataMutex.Unlock()
-	if fake.GetRunPackageMetadataStub != nil {
-		return fake.GetRunPackageMetadataStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getRunPackageMetadataReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -259,15 +262,16 @@ func (fake *FakePackageFinder) GetRunPackagesList(arg1 string) ([]string, error)
 	fake.getRunPackagesListArgsForCall = append(fake.getRunPackagesListArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.GetRunPackagesListStub
+	fakeReturns := fake.getRunPackagesListReturns
 	fake.recordInvocation("GetRunPackagesList", []interface{}{arg1})
 	fake.getRunPackagesListMutex.Unlock()
-	if fake.GetRunPackagesListStub != nil {
-		return fake.GetRunPackagesListStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getRunPackagesListReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

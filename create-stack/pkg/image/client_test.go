@@ -2,6 +2,11 @@ package image_test
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
+	"os/exec"
+	"testing"
+
 	"github.com/google/go-containerregistry/pkg/name"
 	"github.com/google/go-containerregistry/pkg/v1/daemon"
 	"github.com/google/go-containerregistry/pkg/v1/random"
@@ -10,9 +15,6 @@ import (
 	"github.com/sclevine/spec/report"
 	assertpkg "github.com/stretchr/testify/assert"
 	requirepkg "github.com/stretchr/testify/require"
-	"io/ioutil"
-	"os"
-	"testing"
 )
 
 func TestImageClient(t *testing.T) {
@@ -50,23 +52,23 @@ func testImageClient(t *testing.T, when spec.G, it spec.S) {
 	})
 
 	it("can build images", func() {
-
 		dir, err := ioutil.TempDir("", "dockerfile-test")
 
 		file, err := os.Create(fmt.Sprintf("%s/%s", dir, "Dockerfile"))
 		require.NoError(err)
 
-		file.WriteString(`FROM alpine
+		_, err = file.WriteString(`FROM alpine
 ARG test_build_arg
 LABEL testing.key=some-value
 LABEL testing.build.arg.key=$test_build_arg`)
+		require.NoError(err)
 
 		defer os.RemoveAll(dir)
 
 		err = file.Close()
 		require.NoError(err)
 
-		err = imageClient.Build(tag, dir, "test_build_arg=1")
+		err = imageClient.Build(tag, dir, false, nil, "test_build_arg=1")
 		require.NoError(err)
 
 		labels := getLabels(tag, t)
@@ -74,6 +76,50 @@ LABEL testing.build.arg.key=$test_build_arg`)
 		assert.Equal("1", labels["testing.build.arg.key"])
 	})
 
+	it("can build with docker buildkit", func() {
+		dir, err := ioutil.TempDir("", "dockerfile-test")
+
+		file, err := os.Create(fmt.Sprintf("%s/%s", dir, "Dockerfile"))
+		require.NoError(err)
+
+		_, err = file.WriteString(`FROM alpine`)
+		require.NoError(err)
+
+		defer os.RemoveAll(dir)
+
+		err = file.Close()
+		require.NoError(err)
+
+		err = imageClient.Build(tag, dir, true, nil, "test_build_arg=1")
+		require.NoError(err)
+
+		assert.Equal("1", os.Getenv("DOCKER_BUILDKIT"))
+	})
+
+	it("can pass secrets to docker build command", func() {
+		dir, err := ioutil.TempDir("", "dockerfile-test")
+
+		file, err := os.Create(fmt.Sprintf("%s/%s", dir, "Dockerfile"))
+		require.NoError(err)
+
+		_, err = file.WriteString(`# syntax=docker/dockerfile:experimental
+FROM alpine
+RUN --mount=type=secret,id=test-secret,dst=/temp cat /temp > /secret`)
+		require.NoError(err)
+
+		defer os.RemoveAll(dir)
+
+		err = file.Close()
+		require.NoError(err)
+
+		err = imageClient.Build(tag, dir, true, map[string]string{"test-secret": "some-secret"})
+		require.NoError(err)
+
+		contents, err := exec.Command("docker", "run", tag, "cat", "/secret").CombinedOutput()
+		require.NoError(err)
+
+		assert.Equal("some-secret", string(contents))
+	})
 }
 
 func getLabels(tag string, t *testing.T) map[string]string {

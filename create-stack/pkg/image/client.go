@@ -2,21 +2,50 @@ package image
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
+	"os/exec"
+	"strings"
+
 	"github.com/google/go-containerregistry/pkg/authn"
 	"github.com/google/go-containerregistry/pkg/name"
 	v1 "github.com/google/go-containerregistry/pkg/v1"
 	"github.com/google/go-containerregistry/pkg/v1/daemon"
 	"github.com/google/go-containerregistry/pkg/v1/mutate"
 	"github.com/google/go-containerregistry/pkg/v1/remote"
-	"os/exec"
-	"strings"
 )
 
 type Client struct{}
 
-func (c Client) Build(tag, dockerfilePath string, buildArgs ...string) error {
-
+func (c Client) Build(tag, dockerfilePath string, withBuildKit bool, secrets map[string]string, buildArgs ...string) error {
+	if withBuildKit {
+		err := os.Setenv("DOCKER_BUILDKIT", "1")
+		if err != nil {
+			return fmt.Errorf("failed to set DOCKER_BUILDKIT environment variable: %w", err)
+		}
+	}
 	finalArgs := []string{"build", "-t", tag, "--no-cache"}
+
+	if len(secrets) != 0 {
+		dir, err := ioutil.TempDir("", "docker-secrets")
+		if err != nil {
+			return fmt.Errorf("failed to create temp dir: %w", err)
+		}
+
+		for id, secret := range secrets {
+			file, err := os.Create(fmt.Sprintf("%s/secret-%s", dir, id))
+			if err != nil {
+				return fmt.Errorf("failed to create secret file: %w", err)
+			}
+
+			_, err = file.WriteString(secret)
+			if err != nil {
+				return fmt.Errorf("failed to write secret to file: %w", err)
+			}
+
+			finalArgs = append(finalArgs, "--secret", fmt.Sprintf(`id=%s,src=%s`, id, file.Name()))
+		}
+	}
 
 	for _, elem := range buildArgs {
 		finalArgs = append(finalArgs, "--build-arg", elem)

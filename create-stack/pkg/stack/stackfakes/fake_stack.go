@@ -118,6 +118,26 @@ type FakeStack struct {
 	getRunDescriptionReturnsOnCall map[int]struct {
 		result1 string
 	}
+	GetSecretArgsStub        func() map[string]string
+	getSecretArgsMutex       sync.RWMutex
+	getSecretArgsArgsForCall []struct {
+	}
+	getSecretArgsReturns struct {
+		result1 map[string]string
+	}
+	getSecretArgsReturnsOnCall map[int]struct {
+		result1 map[string]string
+	}
+	WithBuildKitStub        func() bool
+	withBuildKitMutex       sync.RWMutex
+	withBuildKitArgsForCall []struct {
+	}
+	withBuildKitReturns struct {
+		result1 bool
+	}
+	withBuildKitReturnsOnCall map[int]struct {
+		result1 bool
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -127,15 +147,16 @@ func (fake *FakeStack) GetBaseBuildArgs() []string {
 	ret, specificReturn := fake.getBaseBuildArgsReturnsOnCall[len(fake.getBaseBuildArgsArgsForCall)]
 	fake.getBaseBuildArgsArgsForCall = append(fake.getBaseBuildArgsArgsForCall, struct {
 	}{})
+	stub := fake.GetBaseBuildArgsStub
+	fakeReturns := fake.getBaseBuildArgsReturns
 	fake.recordInvocation("GetBaseBuildArgs", []interface{}{})
 	fake.getBaseBuildArgsMutex.Unlock()
-	if fake.GetBaseBuildArgsStub != nil {
-		return fake.GetBaseBuildArgsStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.getBaseBuildArgsReturns
 	return fakeReturns.result1
 }
 
@@ -179,15 +200,16 @@ func (fake *FakeStack) GetBaseBuildDockerfilePath() string {
 	ret, specificReturn := fake.getBaseBuildDockerfilePathReturnsOnCall[len(fake.getBaseBuildDockerfilePathArgsForCall)]
 	fake.getBaseBuildDockerfilePathArgsForCall = append(fake.getBaseBuildDockerfilePathArgsForCall, struct {
 	}{})
+	stub := fake.GetBaseBuildDockerfilePathStub
+	fakeReturns := fake.getBaseBuildDockerfilePathReturns
 	fake.recordInvocation("GetBaseBuildDockerfilePath", []interface{}{})
 	fake.getBaseBuildDockerfilePathMutex.Unlock()
-	if fake.GetBaseBuildDockerfilePathStub != nil {
-		return fake.GetBaseBuildDockerfilePathStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.getBaseBuildDockerfilePathReturns
 	return fakeReturns.result1
 }
 
@@ -231,15 +253,16 @@ func (fake *FakeStack) GetBaseRunArgs() []string {
 	ret, specificReturn := fake.getBaseRunArgsReturnsOnCall[len(fake.getBaseRunArgsArgsForCall)]
 	fake.getBaseRunArgsArgsForCall = append(fake.getBaseRunArgsArgsForCall, struct {
 	}{})
+	stub := fake.GetBaseRunArgsStub
+	fakeReturns := fake.getBaseRunArgsReturns
 	fake.recordInvocation("GetBaseRunArgs", []interface{}{})
 	fake.getBaseRunArgsMutex.Unlock()
-	if fake.GetBaseRunArgsStub != nil {
-		return fake.GetBaseRunArgsStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.getBaseRunArgsReturns
 	return fakeReturns.result1
 }
 
@@ -283,15 +306,16 @@ func (fake *FakeStack) GetBaseRunDockerfilePath() string {
 	ret, specificReturn := fake.getBaseRunDockerfilePathReturnsOnCall[len(fake.getBaseRunDockerfilePathArgsForCall)]
 	fake.getBaseRunDockerfilePathArgsForCall = append(fake.getBaseRunDockerfilePathArgsForCall, struct {
 	}{})
+	stub := fake.GetBaseRunDockerfilePathStub
+	fakeReturns := fake.getBaseRunDockerfilePathReturns
 	fake.recordInvocation("GetBaseRunDockerfilePath", []interface{}{})
 	fake.getBaseRunDockerfilePathMutex.Unlock()
-	if fake.GetBaseRunDockerfilePathStub != nil {
-		return fake.GetBaseRunDockerfilePathStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.getBaseRunDockerfilePathReturns
 	return fakeReturns.result1
 }
 
@@ -335,15 +359,16 @@ func (fake *FakeStack) GetBuildDescription() string {
 	ret, specificReturn := fake.getBuildDescriptionReturnsOnCall[len(fake.getBuildDescriptionArgsForCall)]
 	fake.getBuildDescriptionArgsForCall = append(fake.getBuildDescriptionArgsForCall, struct {
 	}{})
+	stub := fake.GetBuildDescriptionStub
+	fakeReturns := fake.getBuildDescriptionReturns
 	fake.recordInvocation("GetBuildDescription", []interface{}{})
 	fake.getBuildDescriptionMutex.Unlock()
-	if fake.GetBuildDescriptionStub != nil {
-		return fake.GetBuildDescriptionStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.getBuildDescriptionReturns
 	return fakeReturns.result1
 }
 
@@ -387,15 +412,16 @@ func (fake *FakeStack) GetCNBBuildArgs() []string {
 	ret, specificReturn := fake.getCNBBuildArgsReturnsOnCall[len(fake.getCNBBuildArgsArgsForCall)]
 	fake.getCNBBuildArgsArgsForCall = append(fake.getCNBBuildArgsArgsForCall, struct {
 	}{})
+	stub := fake.GetCNBBuildArgsStub
+	fakeReturns := fake.getCNBBuildArgsReturns
 	fake.recordInvocation("GetCNBBuildArgs", []interface{}{})
 	fake.getCNBBuildArgsMutex.Unlock()
-	if fake.GetCNBBuildArgsStub != nil {
-		return fake.GetCNBBuildArgsStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.getCNBBuildArgsReturns
 	return fakeReturns.result1
 }
 
@@ -439,15 +465,16 @@ func (fake *FakeStack) GetCNBBuildDockerfilePath() string {
 	ret, specificReturn := fake.getCNBBuildDockerfilePathReturnsOnCall[len(fake.getCNBBuildDockerfilePathArgsForCall)]
 	fake.getCNBBuildDockerfilePathArgsForCall = append(fake.getCNBBuildDockerfilePathArgsForCall, struct {
 	}{})
+	stub := fake.GetCNBBuildDockerfilePathStub
+	fakeReturns := fake.getCNBBuildDockerfilePathReturns
 	fake.recordInvocation("GetCNBBuildDockerfilePath", []interface{}{})
 	fake.getCNBBuildDockerfilePathMutex.Unlock()
-	if fake.GetCNBBuildDockerfilePathStub != nil {
-		return fake.GetCNBBuildDockerfilePathStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.getCNBBuildDockerfilePathReturns
 	return fakeReturns.result1
 }
 
@@ -491,15 +518,16 @@ func (fake *FakeStack) GetCNBRunArgs() []string {
 	ret, specificReturn := fake.getCNBRunArgsReturnsOnCall[len(fake.getCNBRunArgsArgsForCall)]
 	fake.getCNBRunArgsArgsForCall = append(fake.getCNBRunArgsArgsForCall, struct {
 	}{})
+	stub := fake.GetCNBRunArgsStub
+	fakeReturns := fake.getCNBRunArgsReturns
 	fake.recordInvocation("GetCNBRunArgs", []interface{}{})
 	fake.getCNBRunArgsMutex.Unlock()
-	if fake.GetCNBRunArgsStub != nil {
-		return fake.GetCNBRunArgsStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.getCNBRunArgsReturns
 	return fakeReturns.result1
 }
 
@@ -543,15 +571,16 @@ func (fake *FakeStack) GetCNBRunDockerfilePath() string {
 	ret, specificReturn := fake.getCNBRunDockerfilePathReturnsOnCall[len(fake.getCNBRunDockerfilePathArgsForCall)]
 	fake.getCNBRunDockerfilePathArgsForCall = append(fake.getCNBRunDockerfilePathArgsForCall, struct {
 	}{})
+	stub := fake.GetCNBRunDockerfilePathStub
+	fakeReturns := fake.getCNBRunDockerfilePathReturns
 	fake.recordInvocation("GetCNBRunDockerfilePath", []interface{}{})
 	fake.getCNBRunDockerfilePathMutex.Unlock()
-	if fake.GetCNBRunDockerfilePathStub != nil {
-		return fake.GetCNBRunDockerfilePathStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.getCNBRunDockerfilePathReturns
 	return fakeReturns.result1
 }
 
@@ -595,15 +624,16 @@ func (fake *FakeStack) GetName() string {
 	ret, specificReturn := fake.getNameReturnsOnCall[len(fake.getNameArgsForCall)]
 	fake.getNameArgsForCall = append(fake.getNameArgsForCall, struct {
 	}{})
+	stub := fake.GetNameStub
+	fakeReturns := fake.getNameReturns
 	fake.recordInvocation("GetName", []interface{}{})
 	fake.getNameMutex.Unlock()
-	if fake.GetNameStub != nil {
-		return fake.GetNameStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.getNameReturns
 	return fakeReturns.result1
 }
 
@@ -647,15 +677,16 @@ func (fake *FakeStack) GetRunDescription() string {
 	ret, specificReturn := fake.getRunDescriptionReturnsOnCall[len(fake.getRunDescriptionArgsForCall)]
 	fake.getRunDescriptionArgsForCall = append(fake.getRunDescriptionArgsForCall, struct {
 	}{})
+	stub := fake.GetRunDescriptionStub
+	fakeReturns := fake.getRunDescriptionReturns
 	fake.recordInvocation("GetRunDescription", []interface{}{})
 	fake.getRunDescriptionMutex.Unlock()
-	if fake.GetRunDescriptionStub != nil {
-		return fake.GetRunDescriptionStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.getRunDescriptionReturns
 	return fakeReturns.result1
 }
 
@@ -694,6 +725,112 @@ func (fake *FakeStack) GetRunDescriptionReturnsOnCall(i int, result1 string) {
 	}{result1}
 }
 
+func (fake *FakeStack) GetSecretArgs() map[string]string {
+	fake.getSecretArgsMutex.Lock()
+	ret, specificReturn := fake.getSecretArgsReturnsOnCall[len(fake.getSecretArgsArgsForCall)]
+	fake.getSecretArgsArgsForCall = append(fake.getSecretArgsArgsForCall, struct {
+	}{})
+	stub := fake.GetSecretArgsStub
+	fakeReturns := fake.getSecretArgsReturns
+	fake.recordInvocation("GetSecretArgs", []interface{}{})
+	fake.getSecretArgsMutex.Unlock()
+	if stub != nil {
+		return stub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeStack) GetSecretArgsCallCount() int {
+	fake.getSecretArgsMutex.RLock()
+	defer fake.getSecretArgsMutex.RUnlock()
+	return len(fake.getSecretArgsArgsForCall)
+}
+
+func (fake *FakeStack) GetSecretArgsCalls(stub func() map[string]string) {
+	fake.getSecretArgsMutex.Lock()
+	defer fake.getSecretArgsMutex.Unlock()
+	fake.GetSecretArgsStub = stub
+}
+
+func (fake *FakeStack) GetSecretArgsReturns(result1 map[string]string) {
+	fake.getSecretArgsMutex.Lock()
+	defer fake.getSecretArgsMutex.Unlock()
+	fake.GetSecretArgsStub = nil
+	fake.getSecretArgsReturns = struct {
+		result1 map[string]string
+	}{result1}
+}
+
+func (fake *FakeStack) GetSecretArgsReturnsOnCall(i int, result1 map[string]string) {
+	fake.getSecretArgsMutex.Lock()
+	defer fake.getSecretArgsMutex.Unlock()
+	fake.GetSecretArgsStub = nil
+	if fake.getSecretArgsReturnsOnCall == nil {
+		fake.getSecretArgsReturnsOnCall = make(map[int]struct {
+			result1 map[string]string
+		})
+	}
+	fake.getSecretArgsReturnsOnCall[i] = struct {
+		result1 map[string]string
+	}{result1}
+}
+
+func (fake *FakeStack) WithBuildKit() bool {
+	fake.withBuildKitMutex.Lock()
+	ret, specificReturn := fake.withBuildKitReturnsOnCall[len(fake.withBuildKitArgsForCall)]
+	fake.withBuildKitArgsForCall = append(fake.withBuildKitArgsForCall, struct {
+	}{})
+	stub := fake.WithBuildKitStub
+	fakeReturns := fake.withBuildKitReturns
+	fake.recordInvocation("WithBuildKit", []interface{}{})
+	fake.withBuildKitMutex.Unlock()
+	if stub != nil {
+		return stub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeStack) WithBuildKitCallCount() int {
+	fake.withBuildKitMutex.RLock()
+	defer fake.withBuildKitMutex.RUnlock()
+	return len(fake.withBuildKitArgsForCall)
+}
+
+func (fake *FakeStack) WithBuildKitCalls(stub func() bool) {
+	fake.withBuildKitMutex.Lock()
+	defer fake.withBuildKitMutex.Unlock()
+	fake.WithBuildKitStub = stub
+}
+
+func (fake *FakeStack) WithBuildKitReturns(result1 bool) {
+	fake.withBuildKitMutex.Lock()
+	defer fake.withBuildKitMutex.Unlock()
+	fake.WithBuildKitStub = nil
+	fake.withBuildKitReturns = struct {
+		result1 bool
+	}{result1}
+}
+
+func (fake *FakeStack) WithBuildKitReturnsOnCall(i int, result1 bool) {
+	fake.withBuildKitMutex.Lock()
+	defer fake.withBuildKitMutex.Unlock()
+	fake.WithBuildKitStub = nil
+	if fake.withBuildKitReturnsOnCall == nil {
+		fake.withBuildKitReturnsOnCall = make(map[int]struct {
+			result1 bool
+		})
+	}
+	fake.withBuildKitReturnsOnCall[i] = struct {
+		result1 bool
+	}{result1}
+}
+
 func (fake *FakeStack) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -719,6 +856,10 @@ func (fake *FakeStack) Invocations() map[string][][]interface{} {
 	defer fake.getNameMutex.RUnlock()
 	fake.getRunDescriptionMutex.RLock()
 	defer fake.getRunDescriptionMutex.RUnlock()
+	fake.getSecretArgsMutex.RLock()
+	defer fake.getSecretArgsMutex.RUnlock()
+	fake.withBuildKitMutex.RLock()
+	defer fake.withBuildKitMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

@@ -16,6 +16,14 @@ type FullStack struct {
 	cnbRunDockerfilePath    string
 }
 
+func (fs FullStack) WithBuildKit() bool {
+	return false
+}
+
+func (fs FullStack) GetSecretArgs() map[string]string {
+	return nil
+}
+
 func (fs FullStack) GetBaseBuildArgs() []string {
 	return []string{
 		fmt.Sprintf("sources=%s", fs.sources),

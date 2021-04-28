@@ -1,6 +1,8 @@
 package stack_test
 
 import (
+	"testing"
+
 	"github.com/google/go-containerregistry/pkg/authn"
 	"github.com/paketo-buildpacks/stacks/create-stack/pkg/stack"
 	"github.com/paketo-buildpacks/stacks/create-stack/pkg/stack/stackfakes"
@@ -8,7 +10,6 @@ import (
 	"github.com/sclevine/spec/report"
 	assertpkg "github.com/stretchr/testify/assert"
 	requirepkg "github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestCreator(t *testing.T) {
@@ -37,6 +38,8 @@ func testCreator(t *testing.T, when spec.G, it spec.S) {
 
 	it("create the bionic stack", func() {
 		fakeStack.GetNameReturns("test-stack")
+		fakeStack.WithBuildKitReturns(false)
+		fakeStack.GetSecretArgsReturns(nil)
 		fakeStack.GetBaseBuildArgsReturns([]string{"sources=test-sources", "packages=test-build-packages"})
 		fakeStack.GetBaseRunArgsReturns([]string{"sources=test-sources", "packages=test-run-packages"})
 		fakeStack.GetBaseBuildDockerfilePathReturns("test-base-build-dockerfile-path")
@@ -61,7 +64,7 @@ func testCreator(t *testing.T, when spec.G, it spec.S) {
 		expectedBaseBuildDockerfile := "test-base-build-dockerfile-path"
 		expectedBaseBuildArgs := []string{"sources=test-sources", "packages=test-build-packages"}
 
-		actualBaseBuildTag, actualBaseBuildDockerfile, actualBaseBuildArgs := fakeImageClient.BuildArgsForCall(0)
+		actualBaseBuildTag, actualBaseBuildDockerfile, _, _, actualBaseBuildArgs := fakeImageClient.BuildArgsForCall(0)
 		assert.Equal(expectedBaseBuildTag, actualBaseBuildTag)
 		assert.Equal(actualBaseBuildDockerfile, expectedBaseBuildDockerfile)
 		assert.Equal(actualBaseBuildArgs, expectedBaseBuildArgs)
@@ -70,7 +73,7 @@ func testCreator(t *testing.T, when spec.G, it spec.S) {
 		expectedBaseRunDockerfile := "test-base-run-dockerfile-path"
 		expectedBaseRunArgs := []string{"sources=test-sources", "packages=test-run-packages"}
 
-		actualBaseRunTag, actualBaseRunDockerfile, actualBaseRunArgs := fakeImageClient.BuildArgsForCall(1)
+		actualBaseRunTag, actualBaseRunDockerfile, _, _, actualBaseRunArgs := fakeImageClient.BuildArgsForCall(1)
 		assert.Equal(expectedBaseRunTag, actualBaseRunTag)
 		assert.Equal(expectedBaseRunDockerfile, actualBaseRunDockerfile)
 		assert.Equal(expectedBaseRunArgs, actualBaseRunArgs)
@@ -78,7 +81,7 @@ func testCreator(t *testing.T, when spec.G, it spec.S) {
 		expectedCNBBuildTag := "test-build-base-tag-cnb"
 		expectedCNBBuildDockerfile := "test-cnb-build-dockerfile-path"
 
-		actualCNBBuildTag, actualCNBBuildDockerfile, actualCNBBuildArgs := fakeImageClient.BuildArgsForCall(2)
+		actualCNBBuildTag, actualCNBBuildDockerfile, _, _, actualCNBBuildArgs := fakeImageClient.BuildArgsForCall(2)
 		assert.Equal(expectedCNBBuildTag, actualCNBBuildTag)
 		assert.Equal(actualCNBBuildDockerfile, expectedCNBBuildDockerfile)
 		assert.Equal("base_image=test-build-base-tag", actualCNBBuildArgs[0])
@@ -91,7 +94,7 @@ func testCreator(t *testing.T, when spec.G, it spec.S) {
 		expectedCNBRunTag := "test-run-base-tag-cnb"
 		expectedCNBRunDockerfile := "test-cnb-run-dockerfile-path"
 
-		actualCNBRunTag, actualCNBRunDockerfile, actualCNBRunArgs := fakeImageClient.BuildArgsForCall(3)
+		actualCNBRunTag, actualCNBRunDockerfile, _, _, actualCNBRunArgs := fakeImageClient.BuildArgsForCall(3)
 		assert.Equal(expectedCNBRunTag, actualCNBRunTag)
 		assert.Equal(actualCNBRunDockerfile, expectedCNBRunDockerfile)
 		assert.Equal("base_image=test-run-base-tag", actualCNBRunArgs[0])
@@ -135,7 +138,7 @@ func testCreator(t *testing.T, when spec.G, it spec.S) {
 		expectedBaseBuildDockerfile := "test-base-build-dockerfile-path"
 		expectedBaseBuildArgs := []string{"sources=test-sources", "packages=test-build-packages"}
 
-		actualBaseBuildTag, actualBaseBuildDockerfile, actualBaseBuildArgs := fakeImageClient.BuildArgsForCall(0)
+		actualBaseBuildTag, actualBaseBuildDockerfile, _, _, actualBaseBuildArgs := fakeImageClient.BuildArgsForCall(0)
 		assert.Equal(expectedBaseBuildTag, actualBaseBuildTag)
 		assert.Equal(actualBaseBuildDockerfile, expectedBaseBuildDockerfile)
 		assert.Equal(actualBaseBuildArgs, expectedBaseBuildArgs)
@@ -144,7 +147,7 @@ func testCreator(t *testing.T, when spec.G, it spec.S) {
 		expectedBaseRunDockerfile := "test-base-run-dockerfile-path"
 		expectedBaseRunArgs := []string{"sources=test-sources", "packages=test-run-packages"}
 
-		actualBaseRunTag, actualBaseRunDockerfile, actualBaseRunArgs := fakeImageClient.BuildArgsForCall(1)
+		actualBaseRunTag, actualBaseRunDockerfile, _, _, actualBaseRunArgs := fakeImageClient.BuildArgsForCall(1)
 		assert.Equal(expectedBaseRunTag, actualBaseRunTag)
 		assert.Equal(expectedBaseRunDockerfile, actualBaseRunDockerfile)
 		assert.Equal(expectedBaseRunArgs, actualBaseRunArgs)
@@ -152,7 +155,7 @@ func testCreator(t *testing.T, when spec.G, it spec.S) {
 		expectedCNBBuildTag := "test-build-base-tag:latest-test-stack-cnb"
 		expectedCNBBuildDockerfile := "test-cnb-build-dockerfile-path"
 
-		actualCNBBuildTag, actualCNBBuildDockerfile, actualCNBBuildArgs := fakeImageClient.BuildArgsForCall(2)
+		actualCNBBuildTag, actualCNBBuildDockerfile, _, _, actualCNBBuildArgs := fakeImageClient.BuildArgsForCall(2)
 		assert.Equal(expectedCNBBuildTag, actualCNBBuildTag)
 		assert.Equal(actualCNBBuildDockerfile, expectedCNBBuildDockerfile)
 		assert.Equal("base_image=test-build-base-tag:latest-test-stack", actualCNBBuildArgs[0])
@@ -165,7 +168,7 @@ func testCreator(t *testing.T, when spec.G, it spec.S) {
 		expectedCNBRunTag := "test-run-base-tag:latest-test-stack-cnb"
 		expectedCNBRunDockerfile := "test-cnb-run-dockerfile-path"
 
-		actualCNBRunTag, actualCNBRunDockerfile, actualCNBRunArgs := fakeImageClient.BuildArgsForCall(3)
+		actualCNBRunTag, actualCNBRunDockerfile, _, _, actualCNBRunArgs := fakeImageClient.BuildArgsForCall(3)
 		assert.Equal(expectedCNBRunTag, actualCNBRunTag)
 		assert.Equal(actualCNBRunDockerfile, expectedCNBRunDockerfile)
 		assert.Equal("base_image=test-run-base-tag:latest-test-stack", actualCNBRunArgs[0])
@@ -185,10 +188,10 @@ func testCreator(t *testing.T, when spec.G, it spec.S) {
 		err := creator.CreateStack(fakeStack, "test-build-base-tag:latest-test-stack", "test-run-base-tag:latest-test-stack", true)
 		require.NoError(err)
 
-		_, _, actualCNBBuildArgs := fakeImageClient.BuildArgsForCall(2)
+		_, _, _, _, actualCNBBuildArgs := fakeImageClient.BuildArgsForCall(2)
 		assert.Contains(actualCNBBuildArgs, "stack_id=some.stack.id")
 
-		_, _, actualCNBRunArgs := fakeImageClient.BuildArgsForCall(3)
+		_, _, _, _, actualCNBRunArgs := fakeImageClient.BuildArgsForCall(3)
 		assert.Contains(actualCNBRunArgs, "stack_id=some.stack.id")
 	})
 }

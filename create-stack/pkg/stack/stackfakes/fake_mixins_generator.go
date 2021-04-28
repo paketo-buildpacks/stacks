@@ -43,15 +43,16 @@ func (fake *FakeMixinsGenerator) GetMixins(arg1 []string, arg2 []string) ([]stri
 		arg1 []string
 		arg2 []string
 	}{arg1Copy, arg2Copy})
+	stub := fake.GetMixinsStub
+	fakeReturns := fake.getMixinsReturns
 	fake.recordInvocation("GetMixins", []interface{}{arg1Copy, arg2Copy})
 	fake.getMixinsMutex.Unlock()
-	if fake.GetMixinsStub != nil {
-		return fake.GetMixinsStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getMixinsReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

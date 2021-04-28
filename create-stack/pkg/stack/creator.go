@@ -24,7 +24,7 @@ type MixinsGenerator interface {
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 . ImageClient
 type ImageClient interface {
-	Build(tag, dockerfilePath string, buildArgs ...string) error
+	Build(tag, dockerfilePath string, withBuildKit bool, secrets map[string]string, buildArgs ...string) error
 	Push(tag string) (string, error)
 	Pull(tag string, keychain authn.Keychain) (v1.Image, error)
 	SetLabel(tag, key, value string) error
@@ -33,6 +33,8 @@ type ImageClient interface {
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 . Stack
 type Stack interface {
 	GetName() string
+	WithBuildKit() bool
+	GetSecretArgs() map[string]string
 	GetBaseBuildArgs() []string
 	GetBaseRunArgs() []string
 	GetCNBBuildArgs() []string
@@ -71,12 +73,12 @@ func (c Creator) CreateStack(stack Stack, buildBaseTag, runBaseTag string, publi
 }
 
 func (c Creator) buildBaseStackImages(stack Stack, buildBaseTag, runBaseTag string, publish bool) (string, string, error) {
-	buildBaseRef, err := c.buildBaseImage(buildBaseTag, stack.GetBaseBuildDockerfilePath(), stack.GetBaseBuildArgs(), publish)
+	buildBaseRef, err := c.buildBaseImage(buildBaseTag, stack.GetBaseBuildDockerfilePath(), stack.WithBuildKit(), stack.GetSecretArgs(), stack.GetBaseBuildArgs(), publish)
 	if err != nil {
 		return "", "", fmt.Errorf("error building base build image: %w", err)
 	}
 
-	runBaseRef, err := c.buildBaseImage(runBaseTag, stack.GetBaseRunDockerfilePath(), stack.GetBaseRunArgs(), publish)
+	runBaseRef, err := c.buildBaseImage(runBaseTag, stack.GetBaseRunDockerfilePath(), stack.WithBuildKit(), stack.GetSecretArgs(), stack.GetBaseRunArgs(), publish)
 	if err != nil {
 		return "", "", fmt.Errorf("error building base run image: %w", err)
 	}
@@ -118,8 +120,8 @@ func (c Creator) buildCnbStackImages(stack Stack, buildBaseTag, runBaseTag, buil
 	return nil
 }
 
-func (c Creator) buildBaseImage(tag, dockerfilePath string, dockerBuildArgs []string, publish bool) (string, error) {
-	err := c.ImageClient.Build(tag, dockerfilePath, dockerBuildArgs...)
+func (c Creator) buildBaseImage(tag, dockerfilePath string, withBuildKit bool, secrets map[string]string, dockerBuildArgs []string, publish bool) (string, error) {
+	err := c.ImageClient.Build(tag, dockerfilePath, withBuildKit, secrets, dockerBuildArgs...)
 	if err != nil {
 		return "", fmt.Errorf("failed to build base image: %w", err)
 	}
@@ -168,7 +170,7 @@ func (c Creator) buildCnbImage(dockerfilePath, baseTag, baseRef, description, pa
 	}
 	buildArgs = append(buildArgs, additionalBuildArgs...)
 
-	err = c.ImageClient.Build(cnbTag, dockerfilePath, buildArgs...)
+	err = c.ImageClient.Build(cnbTag, dockerfilePath, false, nil, buildArgs...)
 
 	if err != nil {
 		return fmt.Errorf("failed to build cnb image: %w", err)

@@ -10,12 +10,14 @@ import (
 )
 
 type FakeImageClient struct {
-	BuildStub        func(string, string, ...string) error
+	BuildStub        func(string, string, bool, map[string]string, ...string) error
 	buildMutex       sync.RWMutex
 	buildArgsForCall []struct {
 		arg1 string
 		arg2 string
-		arg3 []string
+		arg3 bool
+		arg4 map[string]string
+		arg5 []string
 	}
 	buildReturns struct {
 		result1 error
@@ -67,23 +69,26 @@ type FakeImageClient struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeImageClient) Build(arg1 string, arg2 string, arg3 ...string) error {
+func (fake *FakeImageClient) Build(arg1 string, arg2 string, arg3 bool, arg4 map[string]string, arg5 ...string) error {
 	fake.buildMutex.Lock()
 	ret, specificReturn := fake.buildReturnsOnCall[len(fake.buildArgsForCall)]
 	fake.buildArgsForCall = append(fake.buildArgsForCall, struct {
 		arg1 string
 		arg2 string
-		arg3 []string
-	}{arg1, arg2, arg3})
-	fake.recordInvocation("Build", []interface{}{arg1, arg2, arg3})
+		arg3 bool
+		arg4 map[string]string
+		arg5 []string
+	}{arg1, arg2, arg3, arg4, arg5})
+	stub := fake.BuildStub
+	fakeReturns := fake.buildReturns
+	fake.recordInvocation("Build", []interface{}{arg1, arg2, arg3, arg4, arg5})
 	fake.buildMutex.Unlock()
-	if fake.BuildStub != nil {
-		return fake.BuildStub(arg1, arg2, arg3...)
+	if stub != nil {
+		return stub(arg1, arg2, arg3, arg4, arg5...)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.buildReturns
 	return fakeReturns.result1
 }
 
@@ -93,17 +98,17 @@ func (fake *FakeImageClient) BuildCallCount() int {
 	return len(fake.buildArgsForCall)
 }
 
-func (fake *FakeImageClient) BuildCalls(stub func(string, string, ...string) error) {
+func (fake *FakeImageClient) BuildCalls(stub func(string, string, bool, map[string]string, ...string) error) {
 	fake.buildMutex.Lock()
 	defer fake.buildMutex.Unlock()
 	fake.BuildStub = stub
 }
 
-func (fake *FakeImageClient) BuildArgsForCall(i int) (string, string, []string) {
+func (fake *FakeImageClient) BuildArgsForCall(i int) (string, string, bool, map[string]string, []string) {
 	fake.buildMutex.RLock()
 	defer fake.buildMutex.RUnlock()
 	argsForCall := fake.buildArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5
 }
 
 func (fake *FakeImageClient) BuildReturns(result1 error) {
@@ -136,15 +141,16 @@ func (fake *FakeImageClient) Pull(arg1 string, arg2 authn.Keychain) (v1.Image, e
 		arg1 string
 		arg2 authn.Keychain
 	}{arg1, arg2})
+	stub := fake.PullStub
+	fakeReturns := fake.pullReturns
 	fake.recordInvocation("Pull", []interface{}{arg1, arg2})
 	fake.pullMutex.Unlock()
-	if fake.PullStub != nil {
-		return fake.PullStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.pullReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -199,15 +205,16 @@ func (fake *FakeImageClient) Push(arg1 string) (string, error) {
 	fake.pushArgsForCall = append(fake.pushArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.PushStub
+	fakeReturns := fake.pushReturns
 	fake.recordInvocation("Push", []interface{}{arg1})
 	fake.pushMutex.Unlock()
-	if fake.PushStub != nil {
-		return fake.PushStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.pushReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -264,15 +271,16 @@ func (fake *FakeImageClient) SetLabel(arg1 string, arg2 string, arg3 string) err
 		arg2 string
 		arg3 string
 	}{arg1, arg2, arg3})
+	stub := fake.SetLabelStub
+	fakeReturns := fake.setLabelReturns
 	fake.recordInvocation("SetLabel", []interface{}{arg1, arg2, arg3})
 	fake.setLabelMutex.Unlock()
-	if fake.SetLabelStub != nil {
-		return fake.SetLabelStub(arg1, arg2, arg3)
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.setLabelReturns
 	return fakeReturns.result1
 }
 

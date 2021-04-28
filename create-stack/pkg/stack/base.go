@@ -18,6 +18,14 @@ type BaseStack struct {
 
 const arch = "x86_64"
 
+func (bs BaseStack) WithBuildKit() bool {
+	return false
+}
+
+func (bs BaseStack) GetSecretArgs() map[string]string {
+	return nil
+}
+
 func (bs BaseStack) GetBaseBuildArgs() []string {
 	return []string{
 		fmt.Sprintf("sources=%s", bs.sources),

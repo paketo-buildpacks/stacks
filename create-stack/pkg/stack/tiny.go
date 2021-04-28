@@ -16,6 +16,14 @@ type TinyStack struct {
 	cnbRunDockerfilePath    string
 }
 
+func (ts TinyStack) WithBuildKit() bool {
+	return false
+}
+
+func (ts TinyStack) GetSecretArgs() map[string]string {
+	return nil
+}
+
 func (ts TinyStack) GetBaseBuildArgs() []string {
 	return []string{
 		fmt.Sprintf("sources=%s", ts.sources),
