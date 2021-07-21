@@ -25,9 +25,11 @@ jobs:
           go-version: 1.16
 
       - name: Docker login
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.PAKETO_TESTING_DOCKERHUB_USERNAME }}
+          DOCKERHUB_PASSWORD: ${{ secrets.PAKETO_TESTING_DOCKERHUB_PASSWORD }}
         run: |
-          docker login -u ${{ secrets.PAKETO_TESTING_DOCKERHUB_USERNAME }} --password-stdin \
-            < <(echo '${{ secrets.PAKETO_TESTING_DOCKERHUB_PASSWORD }}')
+          echo "${DOCKERHUB_PASSWORD}" | sudo skopeo login --username "${DOCKERHUB_USERNAME}" --password-stdin index.docker.io
 
       - name: Run Tests
         run: |
