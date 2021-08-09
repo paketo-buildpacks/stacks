@@ -24,17 +24,12 @@ jobs:
         cd actions/usn-update/usn-recorder
         go test ./...
 
-  approve:
-    name: Auto Approve
-    if: ${{ github.event.pull_request.user.login == 'dependabot[bot]' }}
-    needs: test-usn-update
+  upload:
+    name: Upload Workflow Event Payload
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout
-      uses: actions/checkout@v2
-
-    - name: Approve
-      uses: paketo-buildpacks/github-config/actions/pull-request/approve@main
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v2
       with:
-        token: ${{ secrets.PAKETO_BOT_REVIEWER_GITHUB_TOKEN }}
-        number: ${{ github.event.number }}
+        name: event-payload
+        path: ${{ github.event_path }}
