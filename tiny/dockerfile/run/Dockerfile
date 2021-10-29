@@ -1,4 +1,5 @@
-FROM ubuntu:bionic AS builder
+ARG ubuntu_image
+FROM ${ubuntu_image} AS builder
 
 ARG PACKAGE_LIST=packagelist
 

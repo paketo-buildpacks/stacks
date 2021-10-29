@@ -14,6 +14,11 @@ type FullStack struct {
 	baseRunDockerfilePath   string
 	cnbBuildDockerfilePath  string
 	cnbRunDockerfilePath    string
+	architecture            string
+}
+
+func (fs FullStack) GetArchitecture() string {
+	return fs.architecture
 }
 
 func (fs FullStack) WithBuildKit() bool {
@@ -26,6 +31,7 @@ func (fs FullStack) GetSecretArgs() map[string]string {
 
 func (fs FullStack) GetBaseBuildArgs() []string {
 	return []string{
+		fmt.Sprintf("ubuntu_image=%s", GetUbuntuImage(fs.GetArchitecture())),
 		fmt.Sprintf("sources=%s", fs.sources),
 		fmt.Sprintf("packages=%s", fs.buildPackages),
 	}
@@ -33,6 +39,7 @@ func (fs FullStack) GetBaseBuildArgs() []string {
 
 func (fs FullStack) GetBaseRunArgs() []string {
 	return []string{
+		fmt.Sprintf("ubuntu_image=%s", GetUbuntuImage(fs.GetArchitecture())),
 		fmt.Sprintf("sources=%s", fs.sources),
 		fmt.Sprintf("packages=%s", fs.runPackages),
 	}
@@ -74,19 +81,29 @@ func (fs FullStack) GetRunDescription() string {
 	return "ubuntu:bionic + many common C libraries and utilities"
 }
 
-func NewFullStack(stackDir string) (FullStack, error) {
+func NewFullStack(stackDir string, architecture string) (FullStack, error) {
 
-	sources, err := ioutil.ReadFile(filepath.Join(stackDir, "arch", arch, "sources.list"))
+	sources, err := ioutil.ReadFile(filepath.Join(stackDir, "arch", architecture, "sources.list"))
 	if err != nil {
 		return FullStack{}, fmt.Errorf("failed to read sources list file: %w", err)
 	}
 
-	buildPackages, err := ioutil.ReadFile(filepath.Join(stackDir, "packages", "full", "build"))
+	buildPackages, err := ioutil.ReadFile(filepath.Join(stackDir, "packages", "full", "build", "_common"))
 	if err != nil {
 		return FullStack{}, fmt.Errorf("failed to read build packages list file: %w", err)
 	}
 
-	runPackages, err := ioutil.ReadFile(filepath.Join(stackDir, "packages", "full", "run"))
+	buildPackagesArch, err := ioutil.ReadFile(filepath.Join(stackDir, "packages", "full", "build", architecture))
+	if err != nil {
+		return FullStack{}, fmt.Errorf("failed to read build packages list file: %w", err)
+	}
+
+	runPackages, err := ioutil.ReadFile(filepath.Join(stackDir, "packages", "full", "run", "_common"))
+	if err != nil {
+		return FullStack{}, fmt.Errorf("failed to read run packages list file: %w", err)
+	}
+
+	runPackagesArch, err := ioutil.ReadFile(filepath.Join(stackDir, "packages", "full", "run", architecture))
 	if err != nil {
 		return FullStack{}, fmt.Errorf("failed to read run packages list file: %w", err)
 	}
@@ -98,11 +115,12 @@ func NewFullStack(stackDir string) (FullStack, error) {
 
 	return FullStack{
 		sources:                 string(sources),
-		buildPackages:           string(buildPackages),
-		runPackages:             string(runPackages),
+		buildPackages:           string(buildPackages) + string(buildPackagesArch),
+		runPackages:             string(runPackages) + string(runPackagesArch),
 		baseBuildDockerfilePath: baseBuildDockerfilePath,
 		baseRunDockerfilePath:   baseRunDockerfilePath,
 		cnbBuildDockerfilePath:  cnbBuildDockerfilePath,
 		cnbRunDockerfilePath:    cnbRunDockerfilePath,
+		architecture:            architecture,
 	}, nil
 }

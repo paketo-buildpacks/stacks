@@ -18,6 +18,7 @@ func main() {
 		Version          string `long:"version" description:"Version to include in image tags" required:"true"`
 		StackName        string `long:"stack" description:"Stack name (base, full, tiny)" required:"true"`
 		StacksDir        string `long:"stacks-dir" description:"Stacks Base Directory" required:"true"`
+		Architecture     string `long:"architecture" description:"Target architecture (i.e. x86_64)" default:"x86_64" choice:"x86_64" choice:"arm64"`
 		Publish          bool   `long:"publish" description:"Push to docker registry"`
 	}
 
@@ -29,24 +30,30 @@ func main() {
 	buildBaseTag := fmt.Sprintf("%s:%s-%s", opts.BuildDestination, opts.Version, opts.StackName)
 	runBaseTag := fmt.Sprintf("%s:%s-%s", opts.RunDestination, opts.Version, opts.StackName)
 
+	// Append architecture unless using the default architecture
+	if opts.Architecture != "x86_64" {
+		buildBaseTag = fmt.Sprintf("%s-%s", buildBaseTag, opts.Architecture)
+		runBaseTag = fmt.Sprintf("%s-%s", runBaseTag, opts.Architecture)
+	}
+
 	var stack stackPkg.Stack
 	var packageFinder stackPkg.PackageFinder
 
 	if opts.StackName == "full" {
 		packageFinder = packages.Bionic{}
-		stack, err = stackPkg.NewFullStack(opts.StacksDir)
+		stack, err = stackPkg.NewFullStack(opts.StacksDir, opts.Architecture)
 		if err != nil {
 			log.Fatal(err)
 		}
 	} else if opts.StackName == "base" {
 		packageFinder = packages.Bionic{}
-		stack, err = stackPkg.NewBaseStack(opts.StacksDir)
+		stack, err = stackPkg.NewBaseStack(opts.StacksDir, opts.Architecture)
 		if err != nil {
 			log.Fatal(err)
 		}
 	} else if opts.StackName == "tiny" {
 		packageFinder = packages.Tiny{BuildPkgs: packages.Bionic{}}
-		stack, err = stackPkg.NewTinyStack(opts.StacksDir)
+		stack, err = stackPkg.NewTinyStack(opts.StacksDir, opts.Architecture)
 		if err != nil {
 			log.Fatal(err)
 		}

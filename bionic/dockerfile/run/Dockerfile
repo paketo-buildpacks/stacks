@@ -1,4 +1,5 @@
-FROM ubuntu:bionic
+ARG ubuntu_image
+FROM ${ubuntu_image}
 
 ARG sources
 ARG packages

@@ -45,6 +45,7 @@ type Stack interface {
 	GetCNBRunDockerfilePath() string
 	GetBuildDescription() string
 	GetRunDescription() string
+	GetArchitecture() string
 }
 
 type Creator struct {
@@ -54,9 +55,11 @@ type Creator struct {
 }
 
 func (c Creator) CreateStack(stack Stack, buildBaseTag, runBaseTag string, publish bool) error {
-	_, err := c.ImageClient.Pull("ubuntu:bionic", authn.DefaultKeychain)
+
+	ubuntuImage := GetUbuntuImage(stack.GetArchitecture())
+	_, err := c.ImageClient.Pull(ubuntuImage, authn.DefaultKeychain)
 	if err != nil {
-		return fmt.Errorf("error pulling bionic image: %w", err)
+		return fmt.Errorf("error pulling %s image: %w", ubuntuImage, err)
 	}
 
 	buildBaseRef, runBaseRef, err := c.buildBaseStackImages(stack, buildBaseTag, runBaseTag, publish)

@@ -14,6 +14,11 @@ type TinyStack struct {
 	baseRunDockerfilePath   string
 	cnbBuildDockerfilePath  string
 	cnbRunDockerfilePath    string
+	architecture            string
+}
+
+func (ts TinyStack) GetArchitecture() string {
+	return ts.architecture
 }
 
 func (ts TinyStack) WithBuildKit() bool {
@@ -26,13 +31,16 @@ func (ts TinyStack) GetSecretArgs() map[string]string {
 
 func (ts TinyStack) GetBaseBuildArgs() []string {
 	return []string{
+		fmt.Sprintf("ubuntu_image=%s", GetUbuntuImage(ts.GetArchitecture())),
 		fmt.Sprintf("sources=%s", ts.sources),
 		fmt.Sprintf("packages=%s", ts.buildPackages),
 	}
 }
 
 func (ts TinyStack) GetBaseRunArgs() []string {
-	return []string{}
+	return []string{
+		fmt.Sprintf("ubuntu_image=%s", GetUbuntuImage(ts.GetArchitecture())),
+	}
 }
 
 func (ts TinyStack) GetCNBBuildArgs() []string {
@@ -73,9 +81,9 @@ func (ts TinyStack) GetRunDescription() string {
 	return "distroless-like bionic + glibc + openssl + CA certs"
 }
 
-func NewTinyStack(stackDir string) (TinyStack, error) {
+func NewTinyStack(stackDir string, architecture string) (TinyStack, error) {
 
-	sources, err := ioutil.ReadFile(filepath.Join(stackDir, "arch", arch, "sources.list"))
+	sources, err := ioutil.ReadFile(filepath.Join(stackDir, "arch", architecture, "sources.list"))
 	if err != nil {
 		return TinyStack{}, fmt.Errorf("failed to read sources list file: %w", err)
 	}
@@ -97,5 +105,6 @@ func NewTinyStack(stackDir string) (TinyStack, error) {
 		baseRunDockerfilePath:   baseRunDockerfilePath,
 		cnbBuildDockerfilePath:  cnbBuildDockerfilePath,
 		cnbRunDockerfilePath:    cnbRunDockerfilePath,
+		architecture:            architecture,
 	}, nil
 }

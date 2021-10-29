@@ -14,9 +14,8 @@ type BaseStack struct {
 	baseRunDockerfilePath   string
 	cnbBuildDockerfilePath  string
 	cnbRunDockerfilePath    string
+	architecture            string
 }
-
-const arch = "x86_64"
 
 func (bs BaseStack) WithBuildKit() bool {
 	return false
@@ -26,8 +25,13 @@ func (bs BaseStack) GetSecretArgs() map[string]string {
 	return nil
 }
 
+func (bs BaseStack) GetArchitecture() string {
+	return bs.architecture
+}
+
 func (bs BaseStack) GetBaseBuildArgs() []string {
 	return []string{
+		fmt.Sprintf("ubuntu_image=%s", GetUbuntuImage(bs.GetArchitecture())),
 		fmt.Sprintf("sources=%s", bs.sources),
 		fmt.Sprintf("packages=%s", bs.buildPackages),
 	}
@@ -35,6 +39,7 @@ func (bs BaseStack) GetBaseBuildArgs() []string {
 
 func (bs BaseStack) GetBaseRunArgs() []string {
 	return []string{
+		fmt.Sprintf("ubuntu_image=%s", GetUbuntuImage(bs.GetArchitecture())),
 		fmt.Sprintf("sources=%s", bs.sources),
 		fmt.Sprintf("packages=%s", bs.runPackages),
 	}
@@ -76,9 +81,9 @@ func (bs BaseStack) GetRunDescription() string {
 	return "ubuntu:bionic + openssl + CA certs"
 }
 
-func NewBaseStack(stackDir string) (BaseStack, error) {
+func NewBaseStack(stackDir string, architecture string) (BaseStack, error) {
 
-	sources, err := ioutil.ReadFile(filepath.Join(stackDir, "arch", arch, "sources.list"))
+	sources, err := ioutil.ReadFile(filepath.Join(stackDir, "arch", architecture, "sources.list"))
 	if err != nil {
 		return BaseStack{}, fmt.Errorf("failed to read sources list file: %w", err)
 	}
@@ -106,5 +111,6 @@ func NewBaseStack(stackDir string) (BaseStack, error) {
 		baseRunDockerfilePath:   baseRunDockerfilePath,
 		cnbBuildDockerfilePath:  cnbBuildDockerfilePath,
 		cnbRunDockerfilePath:    cnbRunDockerfilePath,
+		architecture:            architecture,
 	}, nil
 }

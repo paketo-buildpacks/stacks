@@ -8,6 +8,16 @@ import (
 )
 
 type FakeStack struct {
+	GetArchitectureStub        func() string
+	getArchitectureMutex       sync.RWMutex
+	getArchitectureArgsForCall []struct {
+	}
+	getArchitectureReturns struct {
+		result1 string
+	}
+	getArchitectureReturnsOnCall map[int]struct {
+		result1 string
+	}
 	GetBaseBuildArgsStub        func() []string
 	getBaseBuildArgsMutex       sync.RWMutex
 	getBaseBuildArgsArgsForCall []struct {
@@ -140,6 +150,59 @@ type FakeStack struct {
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
+}
+
+func (fake *FakeStack) GetArchitecture() string {
+	fake.getArchitectureMutex.Lock()
+	ret, specificReturn := fake.getArchitectureReturnsOnCall[len(fake.getArchitectureArgsForCall)]
+	fake.getArchitectureArgsForCall = append(fake.getArchitectureArgsForCall, struct {
+	}{})
+	stub := fake.GetArchitectureStub
+	fakeReturns := fake.getArchitectureReturns
+	fake.recordInvocation("GetArchitecture", []interface{}{})
+	fake.getArchitectureMutex.Unlock()
+	if stub != nil {
+		return stub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeStack) GetArchitectureCallCount() int {
+	fake.getArchitectureMutex.RLock()
+	defer fake.getArchitectureMutex.RUnlock()
+	return len(fake.getArchitectureArgsForCall)
+}
+
+func (fake *FakeStack) GetArchitectureCalls(stub func() string) {
+	fake.getArchitectureMutex.Lock()
+	defer fake.getArchitectureMutex.Unlock()
+	fake.GetArchitectureStub = stub
+}
+
+func (fake *FakeStack) GetArchitectureReturns(result1 string) {
+	fake.getArchitectureMutex.Lock()
+	defer fake.getArchitectureMutex.Unlock()
+	fake.GetArchitectureStub = nil
+	fake.getArchitectureReturns = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeStack) GetArchitectureReturnsOnCall(i int, result1 string) {
+	fake.getArchitectureMutex.Lock()
+	defer fake.getArchitectureMutex.Unlock()
+	fake.GetArchitectureStub = nil
+	if fake.getArchitectureReturnsOnCall == nil {
+		fake.getArchitectureReturnsOnCall = make(map[int]struct {
+			result1 string
+		})
+	}
+	fake.getArchitectureReturnsOnCall[i] = struct {
+		result1 string
+	}{result1}
 }
 
 func (fake *FakeStack) GetBaseBuildArgs() []string {
@@ -834,6 +897,8 @@ func (fake *FakeStack) WithBuildKitReturnsOnCall(i int, result1 bool) {
 func (fake *FakeStack) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
+	fake.getArchitectureMutex.RLock()
+	defer fake.getArchitectureMutex.RUnlock()
 	fake.getBaseBuildArgsMutex.RLock()
 	defer fake.getBaseBuildArgsMutex.RUnlock()
 	fake.getBaseBuildDockerfilePathMutex.RLock()

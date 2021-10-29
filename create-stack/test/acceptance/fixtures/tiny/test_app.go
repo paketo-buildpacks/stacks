@@ -55,7 +55,7 @@ func httpsClient() {
 
 func checkUsers() {
 	fmt.Printf("Try checking users... ")
-	for _, username := range []string{"root","nonroot","nobody"} {
+	for _, username := range []string{"root", "nonroot", "nobody"} {
 		_, err := user.Lookup(username)
 		if err != nil {
 			fmt.Printf("FAIL\n")
@@ -67,7 +67,7 @@ func checkUsers() {
 
 func checkGroups() {
 	fmt.Printf("Try checking groups... ")
-	for _, groupname := range []string{"root","nonroot","nobody","tty","staff"} {
+	for _, groupname := range []string{"root", "nonroot", "nobody", "tty", "staff"} {
 		_, err := user.LookupGroup(groupname)
 		if err != nil {
 			fmt.Printf("FAIL\n")
