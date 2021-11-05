@@ -32,10 +32,8 @@ jobs:
       - name: Run Tests
         run: |
           cd create-stack
-          go test ./...
-
-          cd test/acceptance
-          go test -timeout 30m ./...
+          go test ./pkg/...
+          go test -timeout 30m ./test/acceptance
 
   upload:
     name: Upload Workflow Event Payload

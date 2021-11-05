@@ -6,105 +6,58 @@ import (
 	"path/filepath"
 )
 
-type BaseStack struct {
-	sources                 string
-	buildPackages           string
-	runPackages             string
-	baseBuildDockerfilePath string
-	baseRunDockerfilePath   string
-	cnbBuildDockerfilePath  string
-	cnbRunDockerfilePath    string
-}
-
 const arch = "x86_64"
 
-func (bs BaseStack) WithBuildKit() bool {
-	return false
-}
-
-func (bs BaseStack) GetSecretArgs() map[string]string {
-	return nil
-}
-
-func (bs BaseStack) GetBaseBuildArgs() []string {
-	return []string{
-		fmt.Sprintf("sources=%s", bs.sources),
-		fmt.Sprintf("packages=%s", bs.buildPackages),
-	}
-}
-
-func (bs BaseStack) GetBaseRunArgs() []string {
-	return []string{
-		fmt.Sprintf("sources=%s", bs.sources),
-		fmt.Sprintf("packages=%s", bs.runPackages),
-	}
-}
-
-func (bs BaseStack) GetCNBBuildArgs() []string {
-	return []string{}
-}
-
-func (bs BaseStack) GetCNBRunArgs() []string {
-	return []string{}
-}
-
-func (bs BaseStack) GetName() string {
-	return "base"
-}
-
-func (bs BaseStack) GetBaseBuildDockerfilePath() string {
-	return bs.baseBuildDockerfilePath
-}
-
-func (bs BaseStack) GetBaseRunDockerfilePath() string {
-	return bs.baseRunDockerfilePath
-}
-
-func (bs BaseStack) GetCNBBuildDockerfilePath() string {
-	return bs.cnbBuildDockerfilePath
-}
-
-func (bs BaseStack) GetCNBRunDockerfilePath() string {
-	return bs.cnbRunDockerfilePath
-}
-
-func (bs BaseStack) GetBuildDescription() string {
-	return "ubuntu:bionic + openssl + CA certs + compilers + shell utilities"
-}
-
-func (bs BaseStack) GetRunDescription() string {
-	return "ubuntu:bionic + openssl + CA certs"
-}
-
-func NewBaseStack(stackDir string) (BaseStack, error) {
-
+func NewBaseStack(buildTag, runTag, stackDir string, publish bool) (Definition, error) {
 	sources, err := ioutil.ReadFile(filepath.Join(stackDir, "arch", arch, "sources.list"))
 	if err != nil {
-		return BaseStack{}, fmt.Errorf("failed to read sources list file: %w", err)
+		return Definition{}, fmt.Errorf("failed to read sources list file: %w", err)
 	}
 
 	buildPackages, err := ioutil.ReadFile(filepath.Join(stackDir, "packages", "base", "build"))
 	if err != nil {
-		return BaseStack{}, fmt.Errorf("failed to read build packages list file: %w", err)
+		return Definition{}, fmt.Errorf("failed to read build packages list file: %w", err)
 	}
 
 	runPackages, err := ioutil.ReadFile(filepath.Join(stackDir, "packages", "base", "run"))
 	if err != nil {
-		return BaseStack{}, fmt.Errorf("failed to read run packages list file: %w", err)
+		return Definition{}, fmt.Errorf("failed to read run packages list file: %w", err)
 	}
 
-	baseBuildDockerfilePath := fmt.Sprintf("%s/bionic/dockerfile/build", stackDir)
-	baseRunDockerfilePath := fmt.Sprintf("%s/bionic/dockerfile/run", stackDir)
-	cnbBuildDockerfilePath := fmt.Sprintf("%s/bionic/cnb/build", stackDir)
-	cnbRunDockerfilePath := fmt.Sprintf("%s/bionic/cnb/run", stackDir)
+	useBuildKit := false
 
-	return BaseStack{
-		sources:                 string(sources),
-		buildPackages:           string(buildPackages),
-		runPackages:             string(runPackages),
-		baseBuildDockerfilePath: baseBuildDockerfilePath,
-		baseRunDockerfilePath:   baseRunDockerfilePath,
-		cnbBuildDockerfilePath:  cnbBuildDockerfilePath,
-		cnbRunDockerfilePath:    cnbRunDockerfilePath,
+	return Definition{
+		BuildBase: Image{
+			UseBuildKit: useBuildKit,
+			Publish:     publish,
+			Tag:         buildTag,
+			Dockerfile:  fmt.Sprintf("%s/bionic/dockerfile/build", stackDir),
+			Args: []string{
+				fmt.Sprintf("sources=%s", sources),
+				fmt.Sprintf("packages=%s", buildPackages),
+			},
+		},
+		BuildCNB: Image{
+			Publish:     publish,
+			Tag:         fmt.Sprintf("%s-cnb", buildTag),
+			Dockerfile:  fmt.Sprintf("%s/bionic/cnb/build", stackDir),
+			Description: "ubuntu:bionic + openssl + CA certs + compilers + shell utilities",
+		},
+		RunBase: Image{
+			UseBuildKit: useBuildKit,
+			Publish:     publish,
+			Tag:         runTag,
+			Dockerfile:  fmt.Sprintf("%s/bionic/dockerfile/run", stackDir),
+			Args: []string{
+				fmt.Sprintf("sources=%s", sources),
+				fmt.Sprintf("packages=%s", runPackages),
+			},
+		},
+		RunCNB: Image{
+			Publish:     publish,
+			Tag:         fmt.Sprintf("%s-cnb", runTag),
+			Dockerfile:  fmt.Sprintf("%s/bionic/cnb/run", stackDir),
+			Description: "ubuntu:bionic + openssl + CA certs",
+		},
 	}, nil
 }

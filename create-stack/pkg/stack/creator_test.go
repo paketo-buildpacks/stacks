@@ -5,30 +5,48 @@ import (
 
 	"github.com/google/go-containerregistry/pkg/authn"
 	"github.com/paketo-buildpacks/stacks/create-stack/pkg/stack"
-	"github.com/paketo-buildpacks/stacks/create-stack/pkg/stack/stackfakes"
+	"github.com/paketo-buildpacks/stacks/create-stack/pkg/stack/fakes"
 	"github.com/sclevine/spec"
-	"github.com/sclevine/spec/report"
-	assertpkg "github.com/stretchr/testify/assert"
-	requirepkg "github.com/stretchr/testify/require"
+
+	. "github.com/onsi/gomega"
 )
 
-func TestCreator(t *testing.T) {
-	spec.Run(t, "Creator", testCreator, spec.Report(report.Terminal{}))
+type imageBuildInvocation struct {
+	Tag            string
+	DockerfilePath string
+	WithBuildKit   bool
+	Secrets        map[string]string
+	BuildArgs      []string
 }
 
 func testCreator(t *testing.T, when spec.G, it spec.S) {
-
 	var (
-		fakePackageFinder   = &stackfakes.FakePackageFinder{}
-		fakeMixinsGenerator = &stackfakes.FakeMixinsGenerator{}
-		fakeImageClient     = &stackfakes.FakeImageClient{}
-		fakeStack           = &stackfakes.FakeStack{}
-		assert              = assertpkg.New(t)
-		require             = requirepkg.New(t)
-		creator             stack.Creator
+		Expect = NewWithT(t).Expect
+
+		fakePackageFinder     *fakes.PackageFinder
+		fakeMixinsGenerator   *fakes.MixinsGenerator
+		fakeImageClient       *fakes.ImageClient
+		imageBuildInvocations []imageBuildInvocation
+		creator               stack.Creator
 	)
 
 	it.Before(func() {
+		fakePackageFinder = &fakes.PackageFinder{}
+		fakeMixinsGenerator = &fakes.MixinsGenerator{}
+
+		imageBuildInvocations = []imageBuildInvocation{}
+		fakeImageClient = &fakes.ImageClient{}
+		fakeImageClient.BuildCall.Stub = func(tag, dockerfilePath string, withBuildKit bool, secrets map[string]string, buildArgs ...string) error {
+			imageBuildInvocations = append(imageBuildInvocations, imageBuildInvocation{
+				Tag:            tag,
+				DockerfilePath: dockerfilePath,
+				WithBuildKit:   withBuildKit,
+				Secrets:        secrets,
+				BuildArgs:      buildArgs,
+			})
+			return nil
+		}
+
 		creator = stack.Creator{
 			PackageFinder:   fakePackageFinder,
 			MixinsGenerator: fakeMixinsGenerator,
@@ -37,161 +55,166 @@ func testCreator(t *testing.T, when spec.G, it spec.S) {
 	})
 
 	it("create the bionic stack", func() {
-		fakeStack.GetNameReturns("test-stack")
-		fakeStack.WithBuildKitReturns(false)
-		fakeStack.GetSecretArgsReturns(nil)
-		fakeStack.GetBaseBuildArgsReturns([]string{"sources=test-sources", "packages=test-build-packages"})
-		fakeStack.GetBaseRunArgsReturns([]string{"sources=test-sources", "packages=test-run-packages"})
-		fakeStack.GetBaseBuildDockerfilePathReturns("test-base-build-dockerfile-path")
-		fakeStack.GetBaseRunDockerfilePathReturns("test-base-run-dockerfile-path")
-		fakeStack.GetCNBBuildDockerfilePathReturns("test-cnb-build-dockerfile-path")
-		fakeStack.GetCNBRunDockerfilePathReturns("test-cnb-run-dockerfile-path")
-		fakeStack.GetBuildDescriptionReturns("test-build-description")
-		fakeStack.GetRunDescriptionReturns("test-run-description")
+		fakeMixinsGenerator.GetMixinsCall.Returns.BuildMixins = []string{"test1", "test2", "build:test3"}
+		fakeMixinsGenerator.GetMixinsCall.Returns.RunMixins = []string{"test1", "test2", "run:test4"}
 
-		fakeMixinsGenerator.GetMixinsReturns([]string{"test1", "test2", "build:test3"}, []string{"test1", "test2", "run:test4"})
+		err := creator.Execute(stack.Definition{
+			BuildBase: stack.Image{
+				Tag:        "test-build-base-tag",
+				Dockerfile: "test-base-build-dockerfile-path",
+				Args:       []string{"sources=test-sources", "packages=test-build-packages"},
+			},
+			BuildCNB: stack.Image{
+				Tag:         "test-build-base-tag-cnb",
+				Dockerfile:  "test-cnb-build-dockerfile-path",
+				Description: "test-build-description",
+			},
+			RunBase: stack.Image{
+				Tag:        "test-run-base-tag",
+				Dockerfile: "test-base-run-dockerfile-path",
+				Args:       []string{"sources=test-sources", "packages=test-run-packages"},
+			},
+			RunCNB: stack.Image{
+				Tag:         "test-run-base-tag-cnb",
+				Dockerfile:  "test-cnb-run-dockerfile-path",
+				Description: "test-run-description",
+			},
+		})
+		Expect(err).NotTo(HaveOccurred())
 
-		err := creator.CreateStack(fakeStack, "test-build-base-tag", "test-run-base-tag", false)
-		require.NoError(err)
+		Expect(fakeImageClient.PullCall.Receives.Tag).To(Equal("ubuntu:bionic"))
+		Expect(fakeImageClient.PullCall.Receives.Keychain).To(Equal(authn.DefaultKeychain))
 
-		imagePullTag, pullAuth := fakeImageClient.PullArgsForCall(0)
-		assert.Equal("ubuntu:bionic", imagePullTag)
-		assert.Equal(authn.DefaultKeychain, pullAuth)
+		Expect(fakeImageClient.BuildCall.CallCount).To(Equal(4))
 
-		assert.Equal(4, fakeImageClient.BuildCallCount())
+		Expect(imageBuildInvocations[0].Tag).To(Equal("test-build-base-tag"))
+		Expect(imageBuildInvocations[0].DockerfilePath).To(Equal("test-base-build-dockerfile-path"))
+		Expect(imageBuildInvocations[0].BuildArgs).To(Equal([]string{"sources=test-sources", "packages=test-build-packages"}))
 
-		expectedBaseBuildTag := "test-build-base-tag"
-		expectedBaseBuildDockerfile := "test-base-build-dockerfile-path"
-		expectedBaseBuildArgs := []string{"sources=test-sources", "packages=test-build-packages"}
+		Expect(imageBuildInvocations[1].Tag).To(Equal("test-run-base-tag"))
+		Expect(imageBuildInvocations[1].DockerfilePath).To(Equal("test-base-run-dockerfile-path"))
+		Expect(imageBuildInvocations[1].BuildArgs).To(Equal([]string{"sources=test-sources", "packages=test-run-packages"}))
 
-		actualBaseBuildTag, actualBaseBuildDockerfile, _, _, actualBaseBuildArgs := fakeImageClient.BuildArgsForCall(0)
-		assert.Equal(expectedBaseBuildTag, actualBaseBuildTag)
-		assert.Equal(actualBaseBuildDockerfile, expectedBaseBuildDockerfile)
-		assert.Equal(actualBaseBuildArgs, expectedBaseBuildArgs)
+		Expect(imageBuildInvocations[2].Tag).To(Equal("test-build-base-tag-cnb"))
+		Expect(imageBuildInvocations[2].DockerfilePath).To(Equal("test-cnb-build-dockerfile-path"))
+		Expect(imageBuildInvocations[2].BuildArgs[0]).To(Equal("base_image=test-build-base-tag"))
+		Expect(imageBuildInvocations[2].BuildArgs[1]).To(Equal("description=test-build-description"))
+		Expect(imageBuildInvocations[2].BuildArgs[2]).To(Equal("mixins=[\"test1\",\"test2\",\"build:test3\"]"))
+		Expect(imageBuildInvocations[2].BuildArgs[4]).To(Equal("metadata={}"))
 
-		expectedBaseRunTag := "test-run-base-tag"
-		expectedBaseRunDockerfile := "test-base-run-dockerfile-path"
-		expectedBaseRunArgs := []string{"sources=test-sources", "packages=test-run-packages"}
+		Expect(imageBuildInvocations[3].Tag).To(Equal("test-run-base-tag-cnb"))
+		Expect(imageBuildInvocations[3].DockerfilePath).To(Equal("test-cnb-run-dockerfile-path"))
+		Expect(imageBuildInvocations[3].BuildArgs[0]).To(Equal("base_image=test-run-base-tag"))
+		Expect(imageBuildInvocations[3].BuildArgs[1]).To(Equal("description=test-run-description"))
+		Expect(imageBuildInvocations[3].BuildArgs[2]).To(Equal("mixins=[\"test1\",\"test2\",\"run:test4\"]"))
+		Expect(imageBuildInvocations[3].BuildArgs[4]).To(Equal("metadata={}"))
 
-		actualBaseRunTag, actualBaseRunDockerfile, _, _, actualBaseRunArgs := fakeImageClient.BuildArgsForCall(1)
-		assert.Equal(expectedBaseRunTag, actualBaseRunTag)
-		assert.Equal(expectedBaseRunDockerfile, actualBaseRunDockerfile)
-		assert.Equal(expectedBaseRunArgs, actualBaseRunArgs)
+		buildReleaseDate := imageBuildInvocations[2].BuildArgs[3]
+		runReleaseDate := imageBuildInvocations[3].BuildArgs[3]
+		Expect(runReleaseDate).To(Equal(buildReleaseDate))
 
-		expectedCNBBuildTag := "test-build-base-tag-cnb"
-		expectedCNBBuildDockerfile := "test-cnb-build-dockerfile-path"
-
-		actualCNBBuildTag, actualCNBBuildDockerfile, _, _, actualCNBBuildArgs := fakeImageClient.BuildArgsForCall(2)
-		assert.Equal(expectedCNBBuildTag, actualCNBBuildTag)
-		assert.Equal(actualCNBBuildDockerfile, expectedCNBBuildDockerfile)
-		assert.Equal("base_image=test-build-base-tag", actualCNBBuildArgs[0])
-		assert.Equal("description=test-build-description", actualCNBBuildArgs[1])
-		assert.Equal("mixins=[\"test1\",\"test2\",\"build:test3\"]", actualCNBBuildArgs[2])
-		assert.Equal("metadata={}", actualCNBBuildArgs[4])
-
-		buildReleaseDate := actualCNBBuildArgs[3]
-
-		expectedCNBRunTag := "test-run-base-tag-cnb"
-		expectedCNBRunDockerfile := "test-cnb-run-dockerfile-path"
-
-		actualCNBRunTag, actualCNBRunDockerfile, _, _, actualCNBRunArgs := fakeImageClient.BuildArgsForCall(3)
-		assert.Equal(expectedCNBRunTag, actualCNBRunTag)
-		assert.Equal(actualCNBRunDockerfile, expectedCNBRunDockerfile)
-		assert.Equal("base_image=test-run-base-tag", actualCNBRunArgs[0])
-		assert.Equal("description=test-run-description", actualCNBRunArgs[1])
-		assert.Equal("mixins=[\"test1\",\"test2\",\"run:test4\"]", actualCNBRunArgs[2])
-		assert.Equal("metadata={}", actualCNBRunArgs[4])
-
-		runReleaseDate := actualCNBRunArgs[3]
-
-		assert.Equal(buildReleaseDate, runReleaseDate)
-
-		assert.Equal(0, fakeImageClient.PushCallCount())
+		Expect(fakeImageClient.PushCall.CallCount).To(Equal(0))
 	})
 
 	it("create the bionic stack and publish", func() {
-		fakeStack.GetNameReturns("test-stack")
-		fakeStack.GetBaseBuildArgsReturns([]string{"sources=test-sources", "packages=test-build-packages"})
-		fakeStack.GetBaseRunArgsReturns([]string{"sources=test-sources", "packages=test-run-packages"})
-		fakeStack.GetBaseBuildDockerfilePathReturns("test-base-build-dockerfile-path")
-		fakeStack.GetBaseRunDockerfilePathReturns("test-base-run-dockerfile-path")
-		fakeStack.GetCNBBuildDockerfilePathReturns("test-cnb-build-dockerfile-path")
-		fakeStack.GetCNBRunDockerfilePathReturns("test-cnb-run-dockerfile-path")
-		fakeStack.GetBuildDescriptionReturns("test-build-description")
-		fakeStack.GetRunDescriptionReturns("test-run-description")
+		fakeImageClient.PushCall.Stub = func(tag string) (string, error) {
+			refs := []string{
+				"test-build-base-tag@sha256:124124214hjshfskahfkjh12312",
+				"test-run-base-tag@sha256:8098908s908f90asf8980989898",
+			}
+			if fakeImageClient.PushCall.CallCount <= len(refs) {
+				return refs[fakeImageClient.PushCall.CallCount-1], nil
+			}
 
-		fakeImageClient.PushReturnsOnCall(0, "test-build-base-tag@sha256:124124214hjshfskahfkjh12312", nil)
-		fakeImageClient.PushReturnsOnCall(1, "test-run-base-tag@sha256:8098908s908f90asf8980989898", nil)
+			return "", nil
+		}
 
-		fakeMixinsGenerator.GetMixinsReturns([]string{"test1", "test2", "build:test3"}, []string{"test1", "test2", "run:test4"})
+		fakeMixinsGenerator.GetMixinsCall.Returns.BuildMixins = []string{"test1", "test2", "build:test3"}
+		fakeMixinsGenerator.GetMixinsCall.Returns.RunMixins = []string{"test1", "test2", "run:test4"}
 
-		err := creator.CreateStack(fakeStack, "test-build-base-tag:latest-test-stack", "test-run-base-tag:latest-test-stack", true)
-		require.NoError(err)
+		err := creator.Execute(stack.Definition{
+			BuildBase: stack.Image{
+				Publish:    true,
+				Tag:        "test-build-base-tag:latest-test-stack",
+				Dockerfile: "test-base-build-dockerfile-path",
+				Args:       []string{"sources=test-sources", "packages=test-build-packages"},
+			},
+			BuildCNB: stack.Image{
+				Publish:     true,
+				Tag:         "test-build-base-tag:latest-test-stack-cnb",
+				Dockerfile:  "test-cnb-build-dockerfile-path",
+				Description: "test-build-description",
+			},
+			RunBase: stack.Image{
+				Publish:    true,
+				Tag:        "test-run-base-tag:latest-test-stack",
+				Dockerfile: "test-base-run-dockerfile-path",
+				Args:       []string{"sources=test-sources", "packages=test-run-packages"},
+			},
+			RunCNB: stack.Image{
+				Publish:     true,
+				Tag:         "test-run-base-tag:latest-test-stack-cnb",
+				Dockerfile:  "test-cnb-run-dockerfile-path",
+				Description: "test-run-description",
+			},
+		})
+		Expect(err).NotTo(HaveOccurred())
 
-		imagePullTag, pullAuth := fakeImageClient.PullArgsForCall(0)
-		assert.Equal("ubuntu:bionic", imagePullTag)
-		assert.Equal(authn.DefaultKeychain, pullAuth)
+		Expect(fakeImageClient.PullCall.Receives.Tag).To(Equal("ubuntu:bionic"))
+		Expect(fakeImageClient.PullCall.Receives.Keychain).To(Equal(authn.DefaultKeychain))
 
-		assert.Equal(4, fakeImageClient.BuildCallCount())
+		Expect(fakeImageClient.BuildCall.CallCount).To(Equal(4))
 
-		expectedBaseBuildTag := "test-build-base-tag:latest-test-stack"
-		expectedBaseBuildDockerfile := "test-base-build-dockerfile-path"
-		expectedBaseBuildArgs := []string{"sources=test-sources", "packages=test-build-packages"}
+		Expect(imageBuildInvocations[0].Tag).To(Equal("test-build-base-tag:latest-test-stack"))
+		Expect(imageBuildInvocations[0].DockerfilePath).To(Equal("test-base-build-dockerfile-path"))
+		Expect(imageBuildInvocations[0].BuildArgs).To(Equal([]string{"sources=test-sources", "packages=test-build-packages"}))
 
-		actualBaseBuildTag, actualBaseBuildDockerfile, _, _, actualBaseBuildArgs := fakeImageClient.BuildArgsForCall(0)
-		assert.Equal(expectedBaseBuildTag, actualBaseBuildTag)
-		assert.Equal(actualBaseBuildDockerfile, expectedBaseBuildDockerfile)
-		assert.Equal(actualBaseBuildArgs, expectedBaseBuildArgs)
+		Expect(imageBuildInvocations[1].Tag).To(Equal("test-run-base-tag:latest-test-stack"))
+		Expect(imageBuildInvocations[1].DockerfilePath).To(Equal("test-base-run-dockerfile-path"))
+		Expect(imageBuildInvocations[1].BuildArgs).To(Equal([]string{"sources=test-sources", "packages=test-run-packages"}))
 
-		expectedBaseRunTag := "test-run-base-tag:latest-test-stack"
-		expectedBaseRunDockerfile := "test-base-run-dockerfile-path"
-		expectedBaseRunArgs := []string{"sources=test-sources", "packages=test-run-packages"}
+		Expect(imageBuildInvocations[2].Tag).To(Equal("test-build-base-tag:latest-test-stack-cnb"))
+		Expect(imageBuildInvocations[2].DockerfilePath).To(Equal("test-cnb-build-dockerfile-path"))
+		Expect(imageBuildInvocations[2].BuildArgs[0]).To(Equal("base_image=test-build-base-tag:latest-test-stack"))
+		Expect(imageBuildInvocations[2].BuildArgs[1]).To(Equal("description=test-build-description"))
+		Expect(imageBuildInvocations[2].BuildArgs[2]).To(Equal("mixins=[\"test1\",\"test2\",\"build:test3\"]"))
+		Expect(imageBuildInvocations[2].BuildArgs[4]).To(Equal("metadata={\"base-image\":\"test-build-base-tag@sha256:124124214hjshfskahfkjh12312\"}"))
 
-		actualBaseRunTag, actualBaseRunDockerfile, _, _, actualBaseRunArgs := fakeImageClient.BuildArgsForCall(1)
-		assert.Equal(expectedBaseRunTag, actualBaseRunTag)
-		assert.Equal(expectedBaseRunDockerfile, actualBaseRunDockerfile)
-		assert.Equal(expectedBaseRunArgs, actualBaseRunArgs)
+		Expect(imageBuildInvocations[3].Tag).To(Equal("test-run-base-tag:latest-test-stack-cnb"))
+		Expect(imageBuildInvocations[3].DockerfilePath).To(Equal("test-cnb-run-dockerfile-path"))
+		Expect(imageBuildInvocations[3].BuildArgs[0]).To(Equal("base_image=test-run-base-tag:latest-test-stack"))
+		Expect(imageBuildInvocations[3].BuildArgs[1]).To(Equal("description=test-run-description"))
+		Expect(imageBuildInvocations[3].BuildArgs[2]).To(Equal("mixins=[\"test1\",\"test2\",\"run:test4\"]"))
+		Expect(imageBuildInvocations[3].BuildArgs[4]).To(Equal("metadata={\"base-image\":\"test-run-base-tag@sha256:8098908s908f90asf8980989898\"}"))
 
-		expectedCNBBuildTag := "test-build-base-tag:latest-test-stack-cnb"
-		expectedCNBBuildDockerfile := "test-cnb-build-dockerfile-path"
-
-		actualCNBBuildTag, actualCNBBuildDockerfile, _, _, actualCNBBuildArgs := fakeImageClient.BuildArgsForCall(2)
-		assert.Equal(expectedCNBBuildTag, actualCNBBuildTag)
-		assert.Equal(actualCNBBuildDockerfile, expectedCNBBuildDockerfile)
-		assert.Equal("base_image=test-build-base-tag:latest-test-stack", actualCNBBuildArgs[0])
-		assert.Equal("description=test-build-description", actualCNBBuildArgs[1])
-		assert.Equal("mixins=[\"test1\",\"test2\",\"build:test3\"]", actualCNBBuildArgs[2])
-		assert.Equal("metadata={\"base-image\":\"test-build-base-tag@sha256:124124214hjshfskahfkjh12312\"}", actualCNBBuildArgs[4])
-
-		buildReleaseDate := actualCNBBuildArgs[3]
-
-		expectedCNBRunTag := "test-run-base-tag:latest-test-stack-cnb"
-		expectedCNBRunDockerfile := "test-cnb-run-dockerfile-path"
-
-		actualCNBRunTag, actualCNBRunDockerfile, _, _, actualCNBRunArgs := fakeImageClient.BuildArgsForCall(3)
-		assert.Equal(expectedCNBRunTag, actualCNBRunTag)
-		assert.Equal(actualCNBRunDockerfile, expectedCNBRunDockerfile)
-		assert.Equal("base_image=test-run-base-tag:latest-test-stack", actualCNBRunArgs[0])
-		assert.Equal("description=test-run-description", actualCNBRunArgs[1])
-		assert.Equal("mixins=[\"test1\",\"test2\",\"run:test4\"]", actualCNBRunArgs[2])
-		assert.Equal("metadata={\"base-image\":\"test-run-base-tag@sha256:8098908s908f90asf8980989898\"}", actualCNBRunArgs[4])
-
-		runReleaseDate := actualCNBRunArgs[3]
-
-		assert.Equal(buildReleaseDate, runReleaseDate)
+		buildReleaseDate := imageBuildInvocations[2].BuildArgs[3]
+		runReleaseDate := imageBuildInvocations[3].BuildArgs[3]
+		Expect(runReleaseDate).To(Equal(buildReleaseDate))
 	})
 
 	it("passes additional args when building CNB image", func() {
-		fakeStack.GetCNBBuildArgsReturns([]string{"stack_id=some.stack.id"})
-		fakeStack.GetCNBRunArgsReturns([]string{"stack_id=some.stack.id"})
-
-		err := creator.CreateStack(fakeStack, "test-build-base-tag:latest-test-stack", "test-run-base-tag:latest-test-stack", true)
-		require.NoError(err)
-
-		_, _, _, _, actualCNBBuildArgs := fakeImageClient.BuildArgsForCall(2)
-		assert.Contains(actualCNBBuildArgs, "stack_id=some.stack.id")
-
-		_, _, _, _, actualCNBRunArgs := fakeImageClient.BuildArgsForCall(3)
-		assert.Contains(actualCNBRunArgs, "stack_id=some.stack.id")
+		err := creator.Execute(stack.Definition{
+			BuildBase: stack.Image{
+				Publish: true,
+				Tag:     "test-build-base-tag:latest-test-stack",
+			},
+			BuildCNB: stack.Image{
+				Publish: true,
+				Tag:     "test-build-base-tag:latest-test-stack-cnb",
+				Args:    []string{"stack_id=some.stack.id"},
+			},
+			RunBase: stack.Image{
+				Publish: true,
+				Tag:     "test-run-base-tag:latest-test-stack",
+			},
+			RunCNB: stack.Image{
+				Publish: true,
+				Tag:     "test-run-base-tag:latest-test-stack-cnb",
+				Args:    []string{"stack_id=some.stack.id"},
+			},
+		})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(imageBuildInvocations[2].BuildArgs).To(ContainElement("stack_id=some.stack.id"))
+		Expect(imageBuildInvocations[3].BuildArgs).To(ContainElement("stack_id=some.stack.id"))
 	})
 }

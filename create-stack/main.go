@@ -14,11 +14,11 @@ import (
 func main() {
 	var opts struct {
 		BuildDestination string `long:"build-destination" description:"Destination to tag and publish base image to" required:"true"`
-		RunDestination   string `long:"run-destination" description:"Destination to tag and publish run image to" required:"true"`
-		Version          string `long:"version" description:"Version to include in image tags" required:"true"`
-		StackName        string `long:"stack" description:"Stack name (base, full, tiny)" required:"true"`
-		StacksDir        string `long:"stacks-dir" description:"Stacks Base Directory" required:"true"`
-		Publish          bool   `long:"publish" description:"Push to docker registry"`
+		RunDestination   string `long:"run-destination"   description:"Destination to tag and publish run image to"  required:"true"`
+		Version          string `long:"version"           description:"Version to include in image tags"             required:"true"`
+		StackName        string `long:"stack"             description:"Stack name (base, full, tiny)"                required:"true"`
+		StacksDir        string `long:"stacks-dir"        description:"Stacks Base Directory"                        required:"true"`
+		Publish          bool   `long:"publish"           description:"Push to docker registry"`
 	}
 
 	_, err := flags.Parse(&opts)
@@ -29,28 +29,32 @@ func main() {
 	buildBaseTag := fmt.Sprintf("%s:%s-%s", opts.BuildDestination, opts.Version, opts.StackName)
 	runBaseTag := fmt.Sprintf("%s:%s-%s", opts.RunDestination, opts.Version, opts.StackName)
 
-	var stack stackPkg.Stack
+	var definition stackPkg.Definition
 	var packageFinder stackPkg.PackageFinder
 
-	if opts.StackName == "full" {
+	switch opts.StackName {
+	case "full":
 		packageFinder = packages.Bionic{}
-		stack, err = stackPkg.NewFullStack(opts.StacksDir)
+		definition, err = stackPkg.NewFullStack(buildBaseTag, runBaseTag, opts.StacksDir, opts.Publish)
 		if err != nil {
 			log.Fatal(err)
 		}
-	} else if opts.StackName == "base" {
+
+	case "base":
 		packageFinder = packages.Bionic{}
-		stack, err = stackPkg.NewBaseStack(opts.StacksDir)
+		definition, err = stackPkg.NewBaseStack(buildBaseTag, runBaseTag, opts.StacksDir, opts.Publish)
 		if err != nil {
 			log.Fatal(err)
 		}
-	} else if opts.StackName == "tiny" {
+
+	case "tiny":
 		packageFinder = packages.Tiny{BuildPkgs: packages.Bionic{}}
-		stack, err = stackPkg.NewTinyStack(opts.StacksDir)
+		definition, err = stackPkg.NewTinyStack(buildBaseTag, runBaseTag, opts.StacksDir, opts.Publish)
 		if err != nil {
 			log.Fatal(err)
 		}
-	} else {
+
+	default:
 		log.Fatal("Only full, base, and tiny stacks supported")
 	}
 
@@ -60,7 +64,7 @@ func main() {
 		ImageClient:     image.Client{},
 	}
 
-	err = creator.CreateStack(stack, buildBaseTag, runBaseTag, opts.Publish)
+	err = creator.Execute(definition)
 	if err != nil {
 		log.Fatal(err)
 	}

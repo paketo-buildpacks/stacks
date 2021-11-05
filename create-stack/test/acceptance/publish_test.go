@@ -1,94 +1,77 @@
 package acceptance_test
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"os"
 	"os/exec"
-	"strings"
 	"testing"
 	"time"
 
+	. "github.com/onsi/gomega"
 	"github.com/sclevine/spec"
-	"github.com/sclevine/spec/report"
-	assertpkg "github.com/stretchr/testify/assert"
-	requirepkg "github.com/stretchr/testify/require"
 )
 
-func TestCreateStackBionicPublish(t *testing.T) {
-	spec.Run(t, "CreateStackBionicPublish", testCreateStackBionicPublish, spec.Report(report.Terminal{}))
-}
+func testPublish(cliPath string) func(*testing.T, spec.G, spec.S) {
+	return func(t *testing.T, when spec.G, it spec.S) {
+		var (
+			Expect = NewWithT(t).Expect
 
-func testCreateStackBionicPublish(t *testing.T, when spec.G, it spec.S) {
-	var (
-		cliPath string
-		require = requirepkg.New(t)
-	)
-
-	it.Before(func() {
-		tempFile, err := ioutil.TempFile("", "create-stack")
-		require.NoError(err)
-
-		cliPath = tempFile.Name()
-		require.NoError(tempFile.Close())
-
-		goBuild := exec.Command("go", "build", "-o", cliPath, ".")
-
-		stacksDir, err := getStacksDirectory()
-		require.NoError(err)
-
-		goBuild.Dir = stacksDir + "/create-stack"
-
-		output, err := goBuild.CombinedOutput()
-		require.NoError(err, "failed to build CLI: %s", string(output))
-	})
-
-	it.After(func() {
-		_ = os.Remove(cliPath)
-	})
-
-	it("builds and publishes full bionic-stack", func() {
-		buildRepo := "paketotesting/test-create-stack-base-build"
-		runRepo := "paketotesting/test-create-stack-base-run"
-		version := fmt.Sprintf("dev-%d", time.Now().UnixNano())
-
-		stacksDir, err := getStacksDirectory()
-		require.NoError(err)
-
-		cmd := exec.Command(cliPath,
-			"--build-destination", buildRepo,
-			"--run-destination", runRepo,
-			"--version", version,
-			"--stack", "full",
-			"--stacks-dir", stacksDir,
-			"--publish",
+			settings struct {
+				Version string
+				Build   struct {
+					Destination string
+					BaseRef     string
+					CNBRef      string
+				}
+				Run struct {
+					Destination string
+					BaseRef     string
+					CNBRef      string
+				}
+			}
 		)
-		output, err := cmd.CombinedOutput()
-		require.NoError(err, string(output))
 
-		buildBaseImageRef := fmt.Sprintf("%s:%s-%s", buildRepo, version, "full")
-		assertCorrectBaseImage(t, buildBaseImageRef)
+		it.Before(func() {
+			settings.Version = fmt.Sprintf("dev-%d", time.Now().UnixNano())
 
-		runBaseImageRef := fmt.Sprintf("%s:%s-%s", runRepo, version, "full")
-		assertCorrectBaseImage(t, runBaseImageRef)
-	})
-}
+			settings.Build.Destination = "paketotesting/publish-test-build"
+			settings.Build.BaseRef = fmt.Sprintf("%s:%s-%s", settings.Build.Destination, settings.Version, "full")
+			settings.Build.CNBRef = settings.Build.BaseRef + "-cnb"
 
-func assertCorrectBaseImage(t *testing.T, baseImageRef string) {
-	cnbImageRef := baseImageRef + "-cnb"
-	output, err := exec.Command("docker", "inspect", cnbImageRef, "--format", "{{json .Config}}").CombinedOutput()
-	requirepkg.NoError(t, err, string(output))
+			settings.Run.Destination = "paketotesting/publish-test-run"
+			settings.Run.BaseRef = fmt.Sprintf("%s:%s-%s", settings.Run.Destination, settings.Version, "full")
+			settings.Run.CNBRef = settings.Run.BaseRef + "-cnb"
+		})
 
-	var runImageConfig ImageConfig
-	err = json.Unmarshal(output, &runImageConfig)
-	requirepkg.NoError(t, err)
+		it.After(func() {
+			for _, command := range [][]string{
+				{"image", "rm", settings.Run.CNBRef, "--force"},
+				{"image", "rm", settings.Run.BaseRef, "--force"},
+				{"image", "rm", settings.Build.CNBRef, "--force"},
+				{"image", "rm", settings.Build.BaseRef, "--force"},
+			} {
+				cmd := exec.Command("docker", command...)
+				output, err := cmd.CombinedOutput()
+				Expect(err).NotTo(HaveOccurred(), string(output))
+			}
+		})
 
-	output, err = exec.Command("docker", "pull", baseImageRef).CombinedOutput()
-	requirepkg.NoError(t, err, string(output))
+		it("builds and publishes full bionic-stack", func() {
+			stacksDir, err := getStacksDirectory()
+			Expect(err).NotTo(HaveOccurred())
 
-	output, err = exec.Command("docker", "inspect", "--format", "{{index .RepoDigests 0}}", baseImageRef).CombinedOutput()
-	requirepkg.NoError(t, err, string(output))
+			cmd := exec.Command(cliPath,
+				"--build-destination", settings.Build.Destination,
+				"--run-destination", settings.Run.Destination,
+				"--version", settings.Version,
+				"--stack", "full",
+				"--stacks-dir", stacksDir,
+				"--publish",
+			)
+			output, err := cmd.CombinedOutput()
+			Expect(err).NotTo(HaveOccurred(), string(output))
 
-	assertpkg.JSONEq(t, fmt.Sprintf(`{"base-image": "%s"}`, strings.TrimSpace(string(output))), runImageConfig.StackLabels.Metadata)
+			assertCorrectBaseImage(t, settings.Build.BaseRef)
+			assertCorrectBaseImage(t, settings.Run.BaseRef)
+		})
+	}
 }
