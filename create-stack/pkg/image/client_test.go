@@ -12,125 +12,108 @@ import (
 	"github.com/google/go-containerregistry/pkg/v1/random"
 	"github.com/paketo-buildpacks/stacks/create-stack/pkg/image"
 	"github.com/sclevine/spec"
-	"github.com/sclevine/spec/report"
-	assertpkg "github.com/stretchr/testify/assert"
-	requirepkg "github.com/stretchr/testify/require"
-)
 
-func TestImageClient(t *testing.T) {
-	spec.Run(t, "ImageClient", testImageClient, spec.Report(report.Terminal{}))
-}
+	. "github.com/onsi/gomega"
+)
 
 func testImageClient(t *testing.T, when spec.G, it spec.S) {
 	var (
-		assert      = assertpkg.New(t)
-		require     = requirepkg.New(t)
+		Expect = NewWithT(t).Expect
+
 		imageClient image.Client
 		tag         = "stack-test-image"
 	)
 
 	it.Before(func() {
-		imageClient = image.Client{}
-
 		localTag, err := name.NewTag(tag)
-		require.NoError(err)
+		Expect(err).NotTo(HaveOccurred())
 
 		image, err := random.Image(1, 1)
-		require.NoError(err)
+		Expect(err).NotTo(HaveOccurred())
 
 		_, err = daemon.Write(localTag, image)
-		require.NoError(err)
+		Expect(err).NotTo(HaveOccurred())
 	})
 
 	it("can set labels", func() {
 		err := imageClient.SetLabel(tag, "some-key", "some-value")
-		require.NoError(err)
+		Expect(err).NotTo(HaveOccurred())
 
 		labels := getLabels(tag, t)
 
-		assert.Equal("some-value", labels["some-key"])
+		Expect(labels["some-key"]).To(Equal("some-value"))
 	})
 
 	it("can build images", func() {
 		dir, err := ioutil.TempDir("", "dockerfile-test")
+		Expect(err).NotTo(HaveOccurred())
 
 		file, err := os.Create(fmt.Sprintf("%s/%s", dir, "Dockerfile"))
-		require.NoError(err)
+		Expect(err).NotTo(HaveOccurred())
 
 		_, err = file.WriteString(`FROM alpine
 ARG test_build_arg
 LABEL testing.key=some-value
 LABEL testing.build.arg.key=$test_build_arg`)
-		require.NoError(err)
+		Expect(err).NotTo(HaveOccurred())
 
 		defer os.RemoveAll(dir)
 
 		err = file.Close()
-		require.NoError(err)
+		Expect(err).NotTo(HaveOccurred())
 
 		err = imageClient.Build(tag, dir, false, nil, "test_build_arg=1")
-		require.NoError(err)
+		Expect(err).NotTo(HaveOccurred())
 
 		labels := getLabels(tag, t)
-		assert.Equal("some-value", labels["testing.key"])
-		assert.Equal("1", labels["testing.build.arg.key"])
+		Expect(labels["testing.key"]).To(Equal("some-value"))
+		Expect(labels["testing.build.arg.key"]).To(Equal("1"))
 	})
 
 	it("can build with docker buildkit", func() {
 		dir, err := ioutil.TempDir("", "dockerfile-test")
+		Expect(err).NotTo(HaveOccurred())
 
 		file, err := os.Create(fmt.Sprintf("%s/%s", dir, "Dockerfile"))
-		require.NoError(err)
+		Expect(err).NotTo(HaveOccurred())
 
 		_, err = file.WriteString(`FROM alpine`)
-		require.NoError(err)
+		Expect(err).NotTo(HaveOccurred())
 
 		defer os.RemoveAll(dir)
 
 		err = file.Close()
-		require.NoError(err)
+		Expect(err).NotTo(HaveOccurred())
 
 		err = imageClient.Build(tag, dir, true, nil, "test_build_arg=1")
-		require.NoError(err)
+		Expect(err).NotTo(HaveOccurred())
 
-		assert.Equal("1", os.Getenv("DOCKER_BUILDKIT"))
+		Expect(os.Getenv("DOCKER_BUILDKIT")).To(Equal("1"))
 	})
 
 	it("can pass secrets to docker build command", func() {
 		dir, err := ioutil.TempDir("", "dockerfile-test")
+		Expect(err).NotTo(HaveOccurred())
 
 		file, err := os.Create(fmt.Sprintf("%s/%s", dir, "Dockerfile"))
-		require.NoError(err)
+		Expect(err).NotTo(HaveOccurred())
 
 		_, err = file.WriteString(`# syntax=docker/dockerfile:experimental
 FROM alpine
 RUN --mount=type=secret,id=test-secret,dst=/temp cat /temp > /secret`)
-		require.NoError(err)
+		Expect(err).NotTo(HaveOccurred())
 
 		defer os.RemoveAll(dir)
 
 		err = file.Close()
-		require.NoError(err)
+		Expect(err).NotTo(HaveOccurred())
 
 		err = imageClient.Build(tag, dir, true, map[string]string{"test-secret": "some-secret"})
-		require.NoError(err)
+		Expect(err).NotTo(HaveOccurred())
 
 		contents, err := exec.Command("docker", "run", tag, "cat", "/secret").CombinedOutput()
-		require.NoError(err)
+		Expect(err).NotTo(HaveOccurred())
 
-		assert.Equal("some-secret", string(contents))
+		Expect(string(contents)).To(Equal("some-secret"))
 	})
-}
-
-func getLabels(tag string, t *testing.T) map[string]string {
-	ref, err := name.ParseReference(tag)
-	requirepkg.NoError(t, err)
-
-	image, err := daemon.Image(ref)
-	requirepkg.NoError(t, err)
-
-	configFile, err := image.ConfigFile()
-	requirepkg.NoError(t, err)
-
-	return configFile.Config.Labels
 }

@@ -9,20 +9,20 @@ import (
 	v1 "github.com/google/go-containerregistry/pkg/v1"
 )
 
-//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 . PackageFinder
+//go:generate faux --interface PackageFinder --output fakes/package_finder.go
 type PackageFinder interface {
-	GetBuildPackagesList(image string) ([]string, error)
-	GetRunPackagesList(image string) ([]string, error)
-	GetBuildPackageMetadata(imageName string) (string, error)
-	GetRunPackageMetadata(imageName string) (string, error)
+	GetBuildPackagesList(image string) (list []string, err error)
+	GetRunPackagesList(image string) (list []string, err error)
+	GetBuildPackageMetadata(image string) (metadata string, err error)
+	GetRunPackageMetadata(image string) (metadata string, err error)
 }
 
-//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 . MixinsGenerator
+//go:generate faux --interface MixinsGenerator --output fakes/mixins_generator.go
 type MixinsGenerator interface {
-	GetMixins(buildPackages, runPackages []string) ([]string, []string)
+	GetMixins(buildPackages, runPackages []string) (buildMixins []string, runMixins []string)
 }
 
-//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 . ImageClient
+//go:generate faux --interface ImageClient --output fakes/image_client.go
 type ImageClient interface {
 	Build(tag, dockerfilePath string, withBuildKit bool, secrets map[string]string, buildArgs ...string) error
 	Push(tag string) (string, error)
@@ -30,7 +30,6 @@ type ImageClient interface {
 	SetLabel(tag, key, value string) error
 }
 
-//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 . Stack
 type Stack interface {
 	GetName() string
 	WithBuildKit() bool
@@ -53,66 +52,104 @@ type Creator struct {
 	ImageClient     ImageClient
 }
 
-func (c Creator) CreateStack(stack Stack, buildBaseTag, runBaseTag string, publish bool) error {
+type Definition struct {
+	BuildBase Image
+	BuildCNB  Image
+	RunBase   Image
+	RunCNB    Image
+}
+
+type Image struct {
+	UseBuildKit bool
+	Publish     bool
+	Tag         string
+	Dockerfile  string
+	Description string
+	Args        []string
+	Secrets     map[string]string
+}
+
+// Deprecated: use Execute instead
+func (c Creator) CreateStack(stackable Stack, buildBaseTag, runBaseTag string, publish bool) error {
+	return c.Execute(Definition{
+		BuildBase: Image{
+			UseBuildKit: stackable.WithBuildKit(),
+			Publish:     publish,
+			Tag:         buildBaseTag,
+			Dockerfile:  stackable.GetBaseBuildDockerfilePath(),
+			Args:        stackable.GetBaseBuildArgs(),
+			Secrets:     stackable.GetSecretArgs(),
+		},
+		BuildCNB: Image{
+			Publish:     publish,
+			Tag:         fmt.Sprintf("%s-cnb", buildBaseTag),
+			Dockerfile:  stackable.GetCNBBuildDockerfilePath(),
+			Description: stackable.GetBuildDescription(),
+			Args:        stackable.GetCNBBuildArgs(),
+		},
+		RunBase: Image{
+			UseBuildKit: stackable.WithBuildKit(),
+			Publish:     publish,
+			Tag:         runBaseTag,
+			Dockerfile:  stackable.GetBaseRunDockerfilePath(),
+			Args:        stackable.GetBaseRunArgs(),
+			Secrets:     stackable.GetSecretArgs(),
+		},
+		RunCNB: Image{
+			Publish:     publish,
+			Tag:         fmt.Sprintf("%s-cnb", runBaseTag),
+			Dockerfile:  stackable.GetCNBRunDockerfilePath(),
+			Description: stackable.GetRunDescription(),
+			Args:        stackable.GetCNBRunArgs(),
+		},
+	})
+}
+
+func (c Creator) Execute(def Definition) error {
 	_, err := c.ImageClient.Pull("ubuntu:bionic", authn.DefaultKeychain)
 	if err != nil {
 		return fmt.Errorf("error pulling bionic image: %w", err)
 	}
 
-	buildBaseRef, runBaseRef, err := c.buildBaseStackImages(stack, buildBaseTag, runBaseTag, publish)
+	buildBaseRef, err := c.buildBaseImage(def.BuildBase)
 	if err != nil {
-		return fmt.Errorf("error building base stack images: %w", err)
+		return fmt.Errorf("error building base build image: %w", err)
 	}
 
-	err = c.buildCnbStackImages(stack, buildBaseTag, runBaseTag, buildBaseRef, runBaseRef, publish)
+	buildBasePackageList, err := c.PackageFinder.GetBuildPackagesList(def.BuildBase.Tag)
 	if err != nil {
-		return fmt.Errorf("error building CNB stack images: %w", err)
+		return fmt.Errorf("error getting packages from base build image: %w", err)
 	}
 
-	return nil
-}
-
-func (c Creator) buildBaseStackImages(stack Stack, buildBaseTag, runBaseTag string, publish bool) (string, string, error) {
-	buildBaseRef, err := c.buildBaseImage(buildBaseTag, stack.GetBaseBuildDockerfilePath(), stack.WithBuildKit(), stack.GetSecretArgs(), stack.GetBaseBuildArgs(), publish)
-	if err != nil {
-		return "", "", fmt.Errorf("error building base build image: %w", err)
-	}
-
-	runBaseRef, err := c.buildBaseImage(runBaseTag, stack.GetBaseRunDockerfilePath(), stack.WithBuildKit(), stack.GetSecretArgs(), stack.GetBaseRunArgs(), publish)
-	if err != nil {
-		return "", "", fmt.Errorf("error building base run image: %w", err)
-	}
-
-	return buildBaseRef, runBaseRef, nil
-}
-
-func (c Creator) buildCnbStackImages(stack Stack, buildBaseTag, runBaseTag, buildBaseRef, runBaseRef string, publish bool) error {
-
-	buildMixins, runMixins, err := c.getMixins(buildBaseTag, runBaseTag)
-	if err != nil {
-		return fmt.Errorf("error getting mixins: %w", err)
-	}
-
-	releaseDate := time.Now()
-
-	buildPackageMetadata, err := c.PackageFinder.GetBuildPackageMetadata(buildBaseTag)
+	buildPackageMetadata, err := c.PackageFinder.GetBuildPackageMetadata(def.BuildBase.Tag)
 	if err != nil {
 		return fmt.Errorf("failed to get build package metadata: %w", err)
 	}
 
-	runPackageMetadata, err := c.PackageFinder.GetRunPackageMetadata(runBaseTag)
+	runBaseRef, err := c.buildBaseImage(def.RunBase)
+	if err != nil {
+		return fmt.Errorf("error building base run image: %w", err)
+	}
+
+	runBasePackageList, err := c.PackageFinder.GetRunPackagesList(def.RunBase.Tag)
+	if err != nil {
+		return fmt.Errorf("error getting packages from base run image: %w", err)
+	}
+
+	runPackageMetadata, err := c.PackageFinder.GetRunPackageMetadata(def.RunBase.Tag)
 	if err != nil {
 		return fmt.Errorf("failed to get run package metadata: %w", err)
 	}
 
-	err = c.buildCnbImage(stack.GetCNBBuildDockerfilePath(), buildBaseTag, buildBaseRef, stack.GetBuildDescription(),
-		buildPackageMetadata, releaseDate, buildMixins, stack.GetCNBBuildArgs(), publish)
+	buildMixins, runMixins := c.MixinsGenerator.GetMixins(buildBasePackageList, runBasePackageList)
+	releaseDate := time.Now()
+
+	err = c.buildCNBImage(def.BuildBase, def.BuildCNB, buildBaseRef, buildPackageMetadata, releaseDate, buildMixins)
 	if err != nil {
 		return fmt.Errorf("error building cnb build image: %w", err)
 	}
 
-	err = c.buildCnbImage(stack.GetCNBRunDockerfilePath(), runBaseTag, runBaseRef, stack.GetRunDescription(),
-		runPackageMetadata, releaseDate, runMixins, stack.GetCNBRunArgs(), publish)
+	err = c.buildCNBImage(def.RunBase, def.RunCNB, runBaseRef, runPackageMetadata, releaseDate, runMixins)
 	if err != nil {
 		return fmt.Errorf("error building cnb run image: %w", err)
 	}
@@ -120,38 +157,36 @@ func (c Creator) buildCnbStackImages(stack Stack, buildBaseTag, runBaseTag, buil
 	return nil
 }
 
-func (c Creator) buildBaseImage(tag, dockerfilePath string, withBuildKit bool, secrets map[string]string, dockerBuildArgs []string, publish bool) (string, error) {
-	err := c.ImageClient.Build(tag, dockerfilePath, withBuildKit, secrets, dockerBuildArgs...)
+func (c Creator) buildBaseImage(image Image) (string, error) {
+	err := c.ImageClient.Build(image.Tag, image.Dockerfile, image.UseBuildKit, image.Secrets, image.Args...)
 	if err != nil {
 		return "", fmt.Errorf("failed to build base image: %w", err)
 	}
 
-	if publish {
-		imageRef, err := c.ImageClient.Push(tag)
+	if image.Publish {
+		ref, err := c.ImageClient.Push(image.Tag)
 		if err != nil {
-			return "", fmt.Errorf("failed to push tag %s: %w", tag, err)
+			return "", fmt.Errorf("failed to push tag %s: %w", image.Tag, err)
 		}
-		return imageRef, nil
+
+		return ref, nil
 	}
 
 	return "", nil
 }
 
-func (c Creator) buildCnbImage(dockerfilePath, baseTag, baseRef, description, packageMetadata string, releaseDate time.Time, mixinsList, additionalBuildArgs []string, publish bool) error {
-
-	mixinsJson, err := json.Marshal(mixinsList)
+func (c Creator) buildCNBImage(base, image Image, baseRef, packageMetadata string, releaseDate time.Time, mixinsList []string) error {
+	mixinsJSON, err := json.Marshal(mixinsList)
 	if err != nil {
 		return fmt.Errorf("failed to marshal mixin array: %w", err)
 	}
-
-	cnbTag := fmt.Sprintf("%s-cnb", baseTag)
 
 	type Metadata struct {
 		BaseImage string `json:"base-image,omitempty"`
 	}
 
 	var metadata Metadata
-	if publish {
+	if image.Publish {
 		metadata = Metadata{BaseImage: baseRef}
 	}
 
@@ -162,49 +197,32 @@ func (c Creator) buildCnbImage(dockerfilePath, baseTag, baseRef, description, pa
 	}
 
 	buildArgs := []string{
-		fmt.Sprintf(`base_image=%s`, baseTag),
-		fmt.Sprintf("description=%s", description),
-		fmt.Sprintf("mixins=%s", string(mixinsJson)),
+		fmt.Sprintf(`base_image=%s`, base.Tag),
+		fmt.Sprintf("description=%s", image.Description),
+		fmt.Sprintf("mixins=%s", string(mixinsJSON)),
 		fmt.Sprintf("released=%s", releaseDate.Format(time.RFC3339)),
 		fmt.Sprintf(`metadata=%s`, string(metadataMap)),
 	}
-	buildArgs = append(buildArgs, additionalBuildArgs...)
+	buildArgs = append(buildArgs, image.Args...)
 
-	err = c.ImageClient.Build(cnbTag, dockerfilePath, false, nil, buildArgs...)
+	err = c.ImageClient.Build(image.Tag, image.Dockerfile, false, nil, buildArgs...)
 
 	if err != nil {
 		return fmt.Errorf("failed to build cnb image: %w", err)
 	}
 
-	err = c.ImageClient.SetLabel(cnbTag, "io.paketo.stack.packages", packageMetadata)
+	err = c.ImageClient.SetLabel(image.Tag, "io.paketo.stack.packages", packageMetadata)
 	if err != nil {
 		return fmt.Errorf("failed to set label: %w", err)
 	}
 
-	if publish {
-		_, err := c.ImageClient.Push(cnbTag)
+	if image.Publish {
+		_, err := c.ImageClient.Push(image.Tag)
 		if err != nil {
-			return fmt.Errorf("failed to push tag %s: %w", cnbTag, err)
+			return fmt.Errorf("failed to push tag %s: %w", image.Tag, err)
 		}
 		return nil
 	}
 
 	return nil
-}
-
-func (c Creator) getMixins(buildBaseTag, runBaseTag string) ([]string, []string, error) {
-	buildBasePackageList, err := c.PackageFinder.GetBuildPackagesList(buildBaseTag)
-	if err != nil {
-		return nil, nil, fmt.Errorf("error getting packages from base build image: %w", err)
-	}
-
-	runBasePackageList, err := c.PackageFinder.GetRunPackagesList(runBaseTag)
-	if err != nil {
-		return nil, nil, fmt.Errorf("error getting packages from base run image: %w", err)
-	}
-
-	buildMixins, runMixins := c.MixinsGenerator.GetMixins(buildBasePackageList, runBasePackageList)
-
-	return buildMixins, runMixins, nil
-
 }

@@ -29,6 +29,10 @@ func (t Tiny) GetRunPackagesList(imageName string) ([]string, error) {
 
 	var packages []string
 	err = filepath.WalkDir(filepath.Join(tmpDir, "status.d"), func(path string, info fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+
 		if info.IsDir() {
 			return nil
 		}
@@ -67,6 +71,10 @@ func (t Tiny) GetRunPackageMetadata(imageName string) (string, error) {
 	var packageMetadata []PackageMetadata
 
 	err = filepath.WalkDir(filepath.Join(tmpDir, "status.d"), func(path string, info fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+
 		if info.IsDir() {
 			return nil
 		}

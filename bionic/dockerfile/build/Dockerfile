@@ -18,4 +18,3 @@ RUN echo "debconf debconf/frontend select noninteractive" | debconf-set-selectio
 
 RUN curl -sL -o /usr/local/bin/yj https://github.com/sclevine/yj/releases/latest/download/yj-linux \
   && chmod +x /usr/local/bin/yj
-
