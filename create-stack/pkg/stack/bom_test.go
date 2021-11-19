@@ -92,7 +92,7 @@ func testBOM(t *testing.T, context spec.G, it spec.S) {
 		})
 
 		it("generates a syft and cyclonedx BOM", func() {
-			outputPaths, err := bom.Generate("alpine")
+			outputPaths, err := bom.Generate("alpine:latest")
 			Expect(err).NotTo(HaveOccurred())
 			Expect(len(outputPaths)).To(Equal(2))
 
@@ -110,7 +110,7 @@ func testBOM(t *testing.T, context spec.G, it spec.S) {
 					decoder := cyclonedx.NewBOMDecoder(bomContent, cyclonedx.BOMFileFormatJSON)
 					Expect(decoder.Decode(&bom)).To(Succeed())
 					Expect(len(*bom.Components)).Should(BeNumerically(">", 0))
-					Expect(bom.Metadata.Component.Name).To(Equal("alpine"))
+					Expect(bom.Metadata.Component.Name).To(Equal("alpine:latest"))
 				}
 				Expect(os.Remove(outputPath)).To(Succeed())
 			}
