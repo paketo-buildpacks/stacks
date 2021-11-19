@@ -1,6 +1,8 @@
 package stack_test
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/google/go-containerregistry/pkg/authn"
@@ -26,13 +28,18 @@ func testCreator(t *testing.T, when spec.G, it spec.S) {
 		fakePackageFinder     *fakes.PackageFinder
 		fakeMixinsGenerator   *fakes.MixinsGenerator
 		fakeImageClient       *fakes.ImageClient
+		fakeBOMGenerator      *fakes.BOMGenerator
 		imageBuildInvocations []imageBuildInvocation
 		creator               stack.Creator
+		dir                   string
+		bomPath               string
+		err                   error
 	)
 
 	it.Before(func() {
 		fakePackageFinder = &fakes.PackageFinder{}
 		fakeMixinsGenerator = &fakes.MixinsGenerator{}
+		fakeBOMGenerator = &fakes.BOMGenerator{}
 
 		imageBuildInvocations = []imageBuildInvocation{}
 		fakeImageClient = &fakes.ImageClient{}
@@ -47,16 +54,26 @@ func testCreator(t *testing.T, when spec.G, it spec.S) {
 			return nil
 		}
 
+		dir, err = os.MkdirTemp("", "")
+		Expect(err).ToNot(HaveOccurred())
+		bomPath = filepath.Join(dir, "syft.json")
+
 		creator = stack.Creator{
 			PackageFinder:   fakePackageFinder,
 			MixinsGenerator: fakeMixinsGenerator,
 			ImageClient:     fakeImageClient,
+			BOMGenerator:    fakeBOMGenerator,
 		}
+	})
+
+	it.After(func() {
+		Expect(os.RemoveAll(dir)).To(Succeed())
 	})
 
 	it("create the bionic stack", func() {
 		fakeMixinsGenerator.GetMixinsCall.Returns.BuildMixins = []string{"test1", "test2", "build:test3"}
 		fakeMixinsGenerator.GetMixinsCall.Returns.RunMixins = []string{"test1", "test2", "run:test4"}
+		fakeBOMGenerator.GenerateCall.Returns.OutputPaths = []string{bomPath}
 
 		err := creator.Execute(stack.Definition{
 			BuildBase: stack.Image{
@@ -114,6 +131,9 @@ func testCreator(t *testing.T, when spec.G, it spec.S) {
 		Expect(runReleaseDate).To(Equal(buildReleaseDate))
 
 		Expect(fakeImageClient.PushCall.CallCount).To(Equal(0))
+		Expect(fakeBOMGenerator.GenerateCall.Receives.ImageTag).To(Equal("test-run-base-tag"))
+		Expect(fakeBOMGenerator.AttachCall.Receives.CnbImageTag).To(Equal("test-run-base-tag-cnb"))
+		Expect(fakeBOMGenerator.AttachCall.Receives.Files).To(Equal([]string{bomPath}))
 	})
 
 	it("create the bionic stack and publish", func() {
@@ -131,6 +151,7 @@ func testCreator(t *testing.T, when spec.G, it spec.S) {
 
 		fakeMixinsGenerator.GetMixinsCall.Returns.BuildMixins = []string{"test1", "test2", "build:test3"}
 		fakeMixinsGenerator.GetMixinsCall.Returns.RunMixins = []string{"test1", "test2", "run:test4"}
+		fakeBOMGenerator.GenerateCall.Returns.OutputPaths = []string{bomPath}
 
 		err := creator.Execute(stack.Definition{
 			BuildBase: stack.Image{
@@ -190,6 +211,9 @@ func testCreator(t *testing.T, when spec.G, it spec.S) {
 		buildReleaseDate := imageBuildInvocations[2].BuildArgs[3]
 		runReleaseDate := imageBuildInvocations[3].BuildArgs[3]
 		Expect(runReleaseDate).To(Equal(buildReleaseDate))
+		Expect(fakeBOMGenerator.GenerateCall.Receives.ImageTag).To(Equal("test-run-base-tag:latest-test-stack"))
+		Expect(fakeBOMGenerator.AttachCall.Receives.CnbImageTag).To(Equal("test-run-base-tag:latest-test-stack-cnb"))
+		Expect(fakeBOMGenerator.AttachCall.Receives.Files).To(Equal([]string{bomPath}))
 	})
 
 	it("passes additional args when building CNB image", func() {

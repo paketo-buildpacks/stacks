@@ -22,6 +22,12 @@ type MixinsGenerator interface {
 	GetMixins(buildPackages, runPackages []string) (buildMixins []string, runMixins []string)
 }
 
+//go:generate faux --interface BOMGenerator --output fakes/bom_generator.go
+type BOMGenerator interface {
+	Generate(imageTag string) (outputPaths []string, err error)
+	Attach(cnbImageTag string, files []string) (err error)
+}
+
 //go:generate faux --interface ImageClient --output fakes/image_client.go
 type ImageClient interface {
 	Build(tag, dockerfilePath string, withBuildKit bool, secrets map[string]string, buildArgs ...string) error
@@ -50,6 +56,7 @@ type Creator struct {
 	PackageFinder   PackageFinder
 	MixinsGenerator MixinsGenerator
 	ImageClient     ImageClient
+	BOMGenerator    BOMGenerator
 }
 
 type Definition struct {
@@ -144,12 +151,12 @@ func (c Creator) Execute(def Definition) error {
 	buildMixins, runMixins := c.MixinsGenerator.GetMixins(buildBasePackageList, runBasePackageList)
 	releaseDate := time.Now()
 
-	err = c.buildCNBImage(def.BuildBase, def.BuildCNB, buildBaseRef, buildPackageMetadata, releaseDate, buildMixins)
+	err = c.buildCNBImage(def.BuildBase, def.BuildCNB, buildBaseRef, buildPackageMetadata, releaseDate, buildMixins, false)
 	if err != nil {
 		return fmt.Errorf("error building cnb build image: %w", err)
 	}
 
-	err = c.buildCNBImage(def.RunBase, def.RunCNB, runBaseRef, runPackageMetadata, releaseDate, runMixins)
+	err = c.buildCNBImage(def.RunBase, def.RunCNB, runBaseRef, runPackageMetadata, releaseDate, runMixins, true)
 	if err != nil {
 		return fmt.Errorf("error building cnb run image: %w", err)
 	}
@@ -175,7 +182,7 @@ func (c Creator) buildBaseImage(image Image) (string, error) {
 	return "", nil
 }
 
-func (c Creator) buildCNBImage(base, image Image, baseRef, packageMetadata string, releaseDate time.Time, mixinsList []string) error {
+func (c Creator) buildCNBImage(base, image Image, baseRef, packageMetadata string, releaseDate time.Time, mixinsList []string, bom bool) error {
 	mixinsJSON, err := json.Marshal(mixinsList)
 	if err != nil {
 		return fmt.Errorf("failed to marshal mixin array: %w", err)
@@ -209,6 +216,20 @@ func (c Creator) buildCNBImage(base, image Image, baseRef, packageMetadata strin
 
 	if err != nil {
 		return fmt.Errorf("failed to build cnb image: %w", err)
+	}
+
+	if bom {
+		// Generate 2 BOMs
+		runBaseBOMPaths, err := c.BOMGenerator.Generate(base.Tag)
+		if err != nil {
+			return fmt.Errorf("error generating BOM: %w", err)
+		}
+
+		// Add BOMs to Layer
+		err = c.BOMGenerator.Attach(image.Tag, runBaseBOMPaths)
+		if err != nil {
+			return fmt.Errorf("error attaching bom: %w", err)
+		}
 	}
 
 	err = c.ImageClient.SetLabel(image.Tag, "io.paketo.stack.packages", packageMetadata)

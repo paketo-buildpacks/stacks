@@ -15,6 +15,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/google/go-containerregistry/pkg/name"
+	v1 "github.com/google/go-containerregistry/pkg/v1"
+	"github.com/google/go-containerregistry/pkg/v1/daemon"
 	. "github.com/onsi/gomega"
 	"github.com/sclevine/spec"
 	"github.com/sclevine/spec/report"
@@ -85,6 +88,13 @@ type ImageConfig struct {
 	StackLabels StackLabels `json:"Labels"`
 }
 
+type ImageMetadata struct {
+	ImageConfig ImageConfig `json:"Config"`
+	RootFS      struct {
+		Layers []string `json:"Layers"`
+	} `json:"RootFS"`
+}
+
 type StackLabels struct {
 	Description   string `json:"io.buildpacks.stack.description"`
 	DistroName    string `json:"io.buildpacks.stack.distro.name"`
@@ -94,8 +104,9 @@ type StackLabels struct {
 	Maintainer    string `json:"io.buildpacks.stack.maintainer"`
 	Metadata      string `json:"io.buildpacks.stack.metadata"`
 	Mixins        string `json:"io.buildpacks.stack.mixins"`
-	Released      string `json:"io.buildpacks.stack.released"`
 	Packages      string `json:"io.paketo.stack.packages"`
+	Released      string `json:"io.buildpacks.stack.released"`
+	SBOM          string `json:"io.buildpacks.base.sbom"`
 }
 
 func assertCorrectBaseImage(t *testing.T, baseImageRef string) {
@@ -144,6 +155,20 @@ func assertContainerFileDoesNotExist(t *testing.T, containerID string, path stri
 		"-",
 	).CombinedOutput()
 	Expect(err).To(HaveOccurred(), fmt.Sprintf("expected %s not to exist:\n%s", path, output))
+}
+
+func assertSBOMAttached(t *testing.T, imageRef string, labels StackLabels) {
+	t.Helper()
+	var Expect = NewWithT(t).Expect
+
+	ref, err := name.ParseReference(imageRef)
+	Expect(err).NotTo(HaveOccurred())
+	img, err := daemon.Image(ref)
+	Expect(err).NotTo(HaveOccurred())
+
+	containsBOMs, err := hasBOMs(labels.SBOM, img)
+	Expect(err).NotTo(HaveOccurred())
+	Expect(containsBOMs).To(BeTrue())
 }
 
 func assertOSReleaseEqual(t *testing.T, expectedOSReleaseContent, actualOSReleaseContent string) {
@@ -254,7 +279,6 @@ func getOriginalOSRelease(containerID string) (string, error) {
 			return string(contents), nil
 		}
 	}
-
 	return "", fmt.Errorf("could not find os-release file in base-files package")
 }
 
@@ -263,4 +287,46 @@ func shouldIgnoreOSReleaseKey(kvPair string) bool {
 		strings.HasPrefix(kvPair, "HOME_URL") ||
 		strings.HasPrefix(kvPair, "SUPPORT_URL") ||
 		strings.HasPrefix(kvPair, "BUG_REPORT_URL")
+}
+
+func hasBOMs(layerDiffID string, img v1.Image) (bool, error) {
+	var seenSyft bool
+	var seenCyclonedx bool
+
+	diffID, err := v1.NewHash(layerDiffID)
+	if err != nil {
+		return false, err
+	}
+
+	bomLayer, err := img.LayerByDiffID(diffID)
+	if err != nil {
+		return false, err
+	}
+
+	layerReader, err := bomLayer.Uncompressed()
+	if err != nil {
+		return false, err
+	}
+	tr := tar.NewReader(layerReader)
+	for {
+		header, err := tr.Next()
+		if err != nil {
+			if err != io.EOF {
+				return false, err
+			}
+			break
+		}
+
+		if header.Typeflag != tar.TypeReg || !strings.HasPrefix(header.Name, "/cnb/sbom") {
+			continue
+		}
+
+		switch strings.TrimPrefix(header.Name, "/cnb/sbom/") {
+		case "bom.syft.json":
+			seenSyft = true
+		case "bom.cdx.json":
+			seenCyclonedx = true
+		}
+	}
+	return seenSyft && seenCyclonedx, nil
 }

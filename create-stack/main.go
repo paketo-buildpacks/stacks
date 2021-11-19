@@ -62,6 +62,7 @@ func main() {
 		PackageFinder:   packageFinder,
 		MixinsGenerator: stackPkg.Mixins{},
 		ImageClient:     image.Client{},
+		BOMGenerator:    stackPkg.BOM{},
 	}
 
 	err = creator.Execute(definition)
