@@ -46,7 +46,7 @@ func (b BOM) Generate(imageTag string) ([]string, error) {
 	}
 	defer cleanup()
 
-	catalog, d, err := syft.CatalogPackages(src, "AllLayers")
+	catalog, d, err := syft.CatalogPackages(src, "Squashed")
 	if err != nil {
 		return []string{}, fmt.Errorf("syft failed to catalog packages from image: %w", err)
 	}
