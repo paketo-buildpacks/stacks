@@ -321,10 +321,14 @@ func hasBOMs(layerDiffID string, img v1.Image) (bool, error) {
 			continue
 		}
 
-		switch strings.TrimPrefix(header.Name, "/cnb/sbom/") {
-		case "bom.syft.json":
+		// the SBOM filepath should be something like:
+		// /cnb/sbom/<first 8 characters of original image digest without BOM>/<syft or cdx>.json
+		reg := regexp.MustCompile(`\/cnb\/sbom\/[a-zA-z0-9]{8}\.`)
+		switch reg.ReplaceAllString(header.Name, "") {
+		// switch strings.TrimPrefix(header.Name, fmt.Sprintf("/cnb/sbom/%s.", baseImageRef)) {
+		case "syft.json":
 			seenSyft = true
-		case "bom.cdx.json":
+		case "cdx.json":
 			seenCyclonedx = true
 		}
 	}

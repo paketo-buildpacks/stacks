@@ -105,10 +105,10 @@ func (b BOM) Attach(imageTag string, files []string) error {
 
 	// From open discussion on the upstream RFC:
 	// https://github.com/buildpacks/rfcs/pull/186#discussion_r744368384
-	// digest, err := img.Digest()
-	// if err != nil {
-	// 	return fmt.Errorf("failed to retrieve image digest: %w", err)
-	// }
+	digest, err := img.Digest()
+	if err != nil {
+		return fmt.Errorf("failed to retrieve image digest: %w", err)
+	}
 	// For use in:
 	//DstPath:  path.Join("/cnb/sbom", digest.Hex[:8]+"."+strings.TrimPrefix(ext, ".")),
 
@@ -121,7 +121,8 @@ func (b BOM) Attach(imageTag string, files []string) error {
 
 		dstPaths = append(dstPaths, InputOutputMapping{
 			FileName: file,
-			DstPath:  path.Join("/cnb/sbom", "bom."+ext),
+			// DstPath:  path.Join("/cnb/sbom", "sbom."+ext),
+			DstPath: path.Join("/cnb/sbom", digest.Hex[:8]+"."+strings.TrimPrefix(ext, ".")),
 		})
 	}
 

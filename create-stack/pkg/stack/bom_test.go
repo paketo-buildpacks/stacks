@@ -128,7 +128,7 @@ func testBOM(t *testing.T, context spec.G, it spec.S) {
 	context("Attach", func() {
 		var (
 			dockerClient *client.Client
-			// ogImgDigest  v1.Hash
+			ogImgDigest  v1.Hash
 		)
 		it.Before(func() {
 			var err error
@@ -146,12 +146,12 @@ func testBOM(t *testing.T, context spec.G, it spec.S) {
 			Expect(err).NotTo(HaveOccurred())
 
 			// If we end up following: https://github.com/buildpacks/rfcs/pull/186#discussion_r744368384
-			// ogRef, err := name.ParseReference("alpine:latest")
-			// Expect(err).NotTo(HaveOccurred())
-			// ogImg, err := daemon.Image(ogRef)
-			// Expect(err).NotTo(HaveOccurred())
-			// ogImgDigest, err = ogImg.Digest()
-			// Expect(err).NotTo(HaveOccurred())
+			ogRef, err := name.ParseReference("alpine:latest")
+			Expect(err).NotTo(HaveOccurred())
+			ogImg, err := daemon.Image(ogRef)
+			Expect(err).NotTo(HaveOccurred())
+			ogImgDigest, err = ogImg.Digest()
+			Expect(err).NotTo(HaveOccurred())
 		})
 
 		it.After(func() {
@@ -193,7 +193,8 @@ func testBOM(t *testing.T, context spec.G, it spec.S) {
 			for _, bomPath := range retrievedBOMs {
 				contents, err := os.ReadFile(bomPath)
 				Expect(err).ToNot(HaveOccurred())
-				fileBase := strings.TrimPrefix(filepath.Base(bomPath), "bom.")
+				// fileBase := strings.TrimPrefix(filepath.Base(bomPath), "sbom.")
+				fileBase := strings.TrimPrefix(filepath.Base(bomPath), ogImgDigest.Hex[:8]+".")
 				Expect(string(contents)).To(Equal(fmt.Sprintf("%s file contents", fileBase)))
 			}
 		})
@@ -209,7 +210,7 @@ func testBOM(t *testing.T, context spec.G, it spec.S) {
 			context("given an invalid image to attach to", func() {
 				it("returns an error", func() {
 					err := bom.Attach("nonexistent-image", []string{inputSyftFile})
-					Expect(err).To(MatchError(ContainSubstring("failed to retrieve image config:")))
+					Expect(err).To(MatchError(ContainSubstring("failed to retrieve image digest:")))
 				})
 			})
 
