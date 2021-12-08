@@ -57,6 +57,7 @@ type Creator struct {
 	MixinsGenerator MixinsGenerator
 	ImageClient     ImageClient
 	BOMGenerator    BOMGenerator
+	AttachBOM       bool
 }
 
 type Definition struct {
@@ -156,7 +157,7 @@ func (c Creator) Execute(def Definition) error {
 		return fmt.Errorf("error building cnb build image: %w", err)
 	}
 
-	err = c.buildCNBImage(def.RunBase, def.RunCNB, runBaseRef, runPackageMetadata, releaseDate, runMixins, true)
+	err = c.buildCNBImage(def.RunBase, def.RunCNB, runBaseRef, runPackageMetadata, releaseDate, runMixins, c.AttachBOM)
 	if err != nil {
 		return fmt.Errorf("error building cnb run image: %w", err)
 	}

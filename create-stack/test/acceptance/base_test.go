@@ -3,6 +3,7 @@ package acceptance_test
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"os/exec"
 	"testing"
 	"time"
@@ -67,6 +68,7 @@ func testBase(cliPath string) func(*testing.T, spec.G, spec.S) {
 				"--stack", "base",
 				"--stacks-dir", stacksDir,
 			)
+			cmd.Env = append(os.Environ(), "EXPERIMENTAL_ATTACH_RUN_IMAGE_SBOM=true")
 			output, err := cmd.CombinedOutput()
 			Expect(err).NotTo(HaveOccurred(), string(output))
 

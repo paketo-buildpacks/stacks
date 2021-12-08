@@ -63,6 +63,7 @@ func testCreator(t *testing.T, when spec.G, it spec.S) {
 			MixinsGenerator: fakeMixinsGenerator,
 			ImageClient:     fakeImageClient,
 			BOMGenerator:    fakeBOMGenerator,
+			AttachBOM:       true,
 		}
 	})
 

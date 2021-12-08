@@ -77,6 +77,7 @@ func testTiny(cliPath string) func(*testing.T, spec.G, spec.S) {
 				"--stack", "tiny",
 				"--stacks-dir", stacksDir,
 			)
+			cmd.Env = append(os.Environ(), "EXPERIMENTAL_ATTACH_RUN_IMAGE_SBOM=true")
 			output, err := cmd.CombinedOutput()
 			Expect(err).NotTo(HaveOccurred(), string(output))
 
