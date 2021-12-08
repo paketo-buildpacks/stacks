@@ -3,7 +3,6 @@ package acceptance_test
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"os/exec"
 	"testing"
 	"time"
@@ -68,7 +67,6 @@ func testBase(cliPath string) func(*testing.T, spec.G, spec.S) {
 				"--stack", "base",
 				"--stacks-dir", stacksDir,
 			)
-			cmd.Env = append(os.Environ(), "EXPERIMENTAL_ATTACH_RUN_IMAGE_SBOM=true")
 			output, err := cmd.CombinedOutput()
 			Expect(err).NotTo(HaveOccurred(), string(output))
 
@@ -112,15 +110,12 @@ func testBase(cliPath string) func(*testing.T, spec.G, spec.S) {
 			runImageConfig = runImageMetadata.ImageConfig
 
 			assertCommonLabels(t, BionicStackID, runImageConfig)
-			assertSBOMAttached(t, settings.Run.CNBRef, runImageConfig.StackLabels)
 
 			Expect(runImageConfig.StackLabels.Description).To(Equal("ubuntu:bionic + openssl + CA certs"))
 			Expect(runImageConfig.StackLabels.Mixins).To(ContainSubstring(`"ca-certificates"`))
 			Expect(runImageConfig.StackLabels.Mixins).NotTo(ContainSubstring("build:"))
 			Expect(runImageConfig.StackLabels.Packages).To(ContainSubstring(`"ca-certificates"`))
-			// BOM label should contain the SHA of the last added layer on the image
-			layers := runImageMetadata.RootFS.Layers
-			Expect(runImageConfig.StackLabels.SBOM).To(Equal(layers[len(layers)-1]))
+			Expect(runImageConfig.StackLabels.SBOM).To(BeEmpty())
 
 			runReleaseDate, err := time.Parse(time.RFC3339, runImageConfig.StackLabels.Released)
 			Expect(err).NotTo(HaveOccurred())
