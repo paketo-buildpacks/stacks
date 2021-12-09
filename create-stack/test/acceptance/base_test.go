@@ -97,14 +97,17 @@ func testBase(cliPath string) func(*testing.T, spec.G, spec.S) {
 			cmd = exec.Command(
 				"docker", "inspect",
 				settings.Run.CNBRef,
-				"--format", "{{json .Config}}",
+				"--format", "{{json .}}",
 			)
 			output, err = cmd.CombinedOutput()
 			Expect(err).NotTo(HaveOccurred(), string(output))
 
+			var runImageMetadata ImageMetadata
 			var runImageConfig ImageConfig
-			err = json.Unmarshal(output, &runImageConfig)
-			Expect(err).NotTo(HaveOccurred())
+			err = json.Unmarshal(output, &runImageMetadata)
+			Expect(err).NotTo(HaveOccurred(), string(output))
+
+			runImageConfig = runImageMetadata.ImageConfig
 
 			assertCommonLabels(t, BionicStackID, runImageConfig)
 
@@ -112,6 +115,7 @@ func testBase(cliPath string) func(*testing.T, spec.G, spec.S) {
 			Expect(runImageConfig.StackLabels.Mixins).To(ContainSubstring(`"ca-certificates"`))
 			Expect(runImageConfig.StackLabels.Mixins).NotTo(ContainSubstring("build:"))
 			Expect(runImageConfig.StackLabels.Packages).To(ContainSubstring(`"ca-certificates"`))
+			Expect(runImageConfig.StackLabels.SBOM).To(BeEmpty())
 
 			runReleaseDate, err := time.Parse(time.RFC3339, runImageConfig.StackLabels.Released)
 			Expect(err).NotTo(HaveOccurred())

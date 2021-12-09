@@ -11,5 +11,6 @@ func TestStack(t *testing.T) {
 	suite := spec.New("stack", spec.Report(report.Terminal{}))
 	suite("Creator", testCreator)
 	suite("Mixins", testMixins)
+	suite("BOM", testBOM)
 	suite.Run(t)
 }

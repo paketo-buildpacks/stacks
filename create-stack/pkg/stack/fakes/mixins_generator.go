@@ -4,7 +4,7 @@ import "sync"
 
 type MixinsGenerator struct {
 	GetMixinsCall struct {
-		mutex     sync.Mutex
+		sync.Mutex
 		CallCount int
 		Receives  struct {
 			BuildPackages []string
@@ -19,8 +19,8 @@ type MixinsGenerator struct {
 }
 
 func (f *MixinsGenerator) GetMixins(param1 []string, param2 []string) ([]string, []string) {
-	f.GetMixinsCall.mutex.Lock()
-	defer f.GetMixinsCall.mutex.Unlock()
+	f.GetMixinsCall.Lock()
+	defer f.GetMixinsCall.Unlock()
 	f.GetMixinsCall.CallCount++
 	f.GetMixinsCall.Receives.BuildPackages = param1
 	f.GetMixinsCall.Receives.RunPackages = param2

@@ -58,10 +58,13 @@ func main() {
 		log.Fatal("Only full, base, and tiny stacks supported")
 	}
 
+	_, attachBOM := os.LookupEnv("EXPERIMENTAL_ATTACH_RUN_IMAGE_SBOM")
 	creator := stackPkg.Creator{
 		PackageFinder:   packageFinder,
 		MixinsGenerator: stackPkg.Mixins{},
 		ImageClient:     image.Client{},
+		BOMGenerator:    stackPkg.BOM{},
+		AttachBOM:       attachBOM,
 	}
 
 	err = creator.Execute(definition)

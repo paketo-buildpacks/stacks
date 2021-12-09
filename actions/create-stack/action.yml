@@ -20,6 +20,9 @@ inputs:
     description: 'Push to docker registry'
     required: true
     default: false
+  experimental_attach_run_image_sbom:
+    description: 'use the experimental feature to attach a run image SBOM'
+    default: false
 
 outputs:
   build_base_sha:
@@ -54,6 +57,10 @@ runs:
 
         if [[ ${{ inputs.publish }} != 'false' ]]; then
           publish="--publish"
+        fi
+
+        if "${{ inputs.experimental_attach_run_image_sbom }}" == "true"; then
+          export EXPERIMENTAL_ATTACH_RUN_IMAGE_SBOM=true
         fi
 
         ./create-stack \
