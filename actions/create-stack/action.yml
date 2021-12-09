@@ -59,7 +59,7 @@ runs:
           publish="--publish"
         fi
 
-        if "${{ inputs.experimental_attach_run_image_sbom }}" == "true"; then
+        if [[ "${{ inputs.experimental_attach_run_image_sbom }}" == "true" ]]; then
           export EXPERIMENTAL_ATTACH_RUN_IMAGE_SBOM=true
         fi
 
