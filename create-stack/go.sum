@@ -102,8 +102,8 @@ github.com/Azure/go-autorest/tracing v0.5.0/go.mod h1:r/s2XiOKccPW3HrqB+W0TQzfbt
 github.com/Azure/go-autorest/tracing v0.6.0/go.mod h1:+vhtPC754Xsa23ID7GlGsrdKBpUA79WCAKPPZVC2DeU=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
-github.com/CycloneDX/cyclonedx-go v0.3.0 h1:goWTclFD33vnHduCOwbAQcHDYoCnTRYF1Zm11Pb1YoM=
-github.com/CycloneDX/cyclonedx-go v0.3.0/go.mod h1:rmRcf//gT7PIzovatusbWi377xqCg1FS4jyST0GH20E=
+github.com/CycloneDX/cyclonedx-go v0.4.0 h1:Wz4QZ9B4RXGWIWTypVLEOVJgOdFfy5mcS5PGNzUkZxU=
+github.com/CycloneDX/cyclonedx-go v0.4.0/go.mod h1:rmRcf//gT7PIzovatusbWi377xqCg1FS4jyST0GH20E=
 github.com/Djarvur/go-err113 v0.0.0-20200410182137-af658d038157/go.mod h1:4UJr5HIiMZrwgkSPdsjy2uOQExX/WEILpIrO9UPGuXs=
 github.com/Djarvur/go-err113 v0.1.0/go.mod h1:4UJr5HIiMZrwgkSPdsjy2uOQExX/WEILpIrO9UPGuXs=
 github.com/GoogleCloudPlatform/cloudsql-proxy v0.0.0-20191009163259-e802c2cb94ae/go.mod h1:mjwGPas4yKduTyubHvD1Atl9r1rUq8DfVy+gkVvZ+oo=
