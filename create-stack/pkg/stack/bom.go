@@ -9,7 +9,6 @@ import (
 	"path"
 	"strings"
 
-	cyclonedx "github.com/CycloneDX/cyclonedx-go"
 	"github.com/anchore/stereoscope/pkg/image"
 	"github.com/anchore/syft/syft"
 	"github.com/anchore/syft/syft/format"
@@ -38,7 +37,7 @@ type InputOutputMapping struct {
 // Generate takes in an existent image tag, and generates two Bill of Materials
 // using the anchore/syft library, and then returns the filepaths to both created files.
 // The function generates two files. One in the Syft JSON format,
-// and the other in CycloneDX 1.2 JSON.
+// and the other in CycloneDX 1.3 JSON.
 func (b BOM) Generate(imageTag string) ([]string, error) {
 	src, cleanup, err := source.New(imageTag, &image.RegistryOptions{})
 	if err != nil {
@@ -46,7 +45,7 @@ func (b BOM) Generate(imageTag string) ([]string, error) {
 	}
 	defer cleanup()
 
-	catalog, d, err := syft.CatalogPackages(src, "Squashed")
+	catalog, _, distro, err := syft.CatalogPackages(src, "Squashed")
 	if err != nil {
 		return []string{}, fmt.Errorf("syft failed to catalog packages from image: %w", err)
 	}
@@ -54,7 +53,7 @@ func (b BOM) Generate(imageTag string) ([]string, error) {
 	sbomResult := sbom.SBOM{
 		Artifacts: sbom.Artifacts{
 			PackageCatalog: catalog,
-			Distro:         d,
+			Distro:         distro,
 		},
 		Source: src.Metadata,
 	}
@@ -67,18 +66,9 @@ func (b BOM) Generate(imageTag string) ([]string, error) {
 		return []string{}, fmt.Errorf("failed to close Syft BOM file: %w", err)
 	}
 
-	cyclonedxXML, err := encodeBOM(sbomResult, format.CycloneDxOption, "cyclonedx.xml")
+	cyclonedxSBOM, err := encodeBOM(sbomResult, format.CycloneDxJSONOption, "cdx.json")
 	if err != nil {
 		return []string{}, fmt.Errorf("failed to encode CycloneDX BOM: %w", err)
-	}
-
-	cyclonedxSBOM, err := convertCyclonedx(cyclonedxXML)
-	if err != nil {
-		return []string{}, fmt.Errorf("failed to convert CycloneDX BOM to JSON: %w", err)
-	}
-	err = os.Remove(cyclonedxXML.Name())
-	if err != nil {
-		return []string{}, fmt.Errorf("failed to remove CycloneDX XML file: %w", err)
 	}
 
 	return []string{syftSBOM.Name(), cyclonedxSBOM.Name()}, nil
@@ -241,32 +231,4 @@ func encodeBOM(sbomStruct sbom.SBOM, format format.Option, filename string) (*os
 	}
 
 	return bomFile, nil
-}
-
-func convertCyclonedx(cyclonedxXML *os.File) (*os.File, error) {
-	xmlFile, err := os.Open(cyclonedxXML.Name())
-	if err != nil {
-		return nil, fmt.Errorf("could not open %s: %w", cyclonedxXML.Name(), err)
-	}
-	defer xmlFile.Close()
-
-	var bom cyclonedx.BOM
-	bom.SpecVersion = "1.2"
-	bom.BOMFormat = "CycloneDX"
-
-	decoder := cyclonedx.NewBOMDecoder(xmlFile, cyclonedx.BOMFileFormatXML)
-	if err = decoder.Decode(&bom); err != nil {
-		return nil, fmt.Errorf("could not decode %s: %w", cyclonedxXML.Name(), err)
-	}
-
-	jsonFile, err := os.CreateTemp("", "cdx.json")
-	if err != nil {
-		return nil, fmt.Errorf("could not create temporary file %s: %w", jsonFile.Name(), err)
-	}
-
-	encoder := cyclonedx.NewBOMEncoder(jsonFile, cyclonedx.BOMFileFormatJSON)
-	if err = encoder.Encode(&bom); err != nil {
-		return nil, fmt.Errorf("could not encode %s BOM file: %w", jsonFile.Name(), err)
-	}
-	return jsonFile, nil
 }
