@@ -12,6 +12,7 @@ import (
 	"github.com/anchore/stereoscope/pkg/image"
 	"github.com/anchore/syft/syft"
 	"github.com/anchore/syft/syft/format"
+	"github.com/anchore/syft/syft/pkg/cataloger"
 	"github.com/anchore/syft/syft/sbom"
 	"github.com/anchore/syft/syft/source"
 	"github.com/google/go-containerregistry/pkg/name"
@@ -39,13 +40,19 @@ type InputOutputMapping struct {
 // The function generates two files. One in the Syft JSON format,
 // and the other in CycloneDX 1.3 JSON.
 func (b BOM) Generate(imageTag string) ([]string, error) {
-	src, cleanup, err := source.New(imageTag, &image.RegistryOptions{})
+	src, cleanup, err := source.New(imageTag, &image.RegistryOptions{}, []string{})
 	if err != nil {
 		return []string{}, fmt.Errorf("syft failed to source image: %w", err)
 	}
 	defer cleanup()
 
-	catalog, _, distro, err := syft.CatalogPackages(src, "Squashed")
+	cfg := cataloger.Config{
+		Search: cataloger.SearchConfig{
+			Scope: source.SquashedScope,
+		},
+	}
+
+	catalog, _, distro, err := syft.CatalogPackages(src, cfg)
 	if err != nil {
 		return []string{}, fmt.Errorf("syft failed to catalog packages from image: %w", err)
 	}
