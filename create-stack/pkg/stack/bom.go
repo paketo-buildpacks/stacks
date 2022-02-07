@@ -52,15 +52,15 @@ func (b BOM) Generate(imageTag string) ([]string, error) {
 		},
 	}
 
-	catalog, _, distro, err := syft.CatalogPackages(src, cfg)
+	catalog, _, release, err := syft.CatalogPackages(src, cfg)
 	if err != nil {
 		return []string{}, fmt.Errorf("syft failed to catalog packages from image: %w", err)
 	}
 
 	sbomResult := sbom.SBOM{
 		Artifacts: sbom.Artifacts{
-			PackageCatalog: catalog,
-			Distro:         distro,
+			PackageCatalog:    catalog,
+			LinuxDistribution: release,
 		},
 		Source: src.Metadata,
 	}
