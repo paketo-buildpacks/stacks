@@ -5,7 +5,7 @@ go 1.16
 require (
 	github.com/CycloneDX/cyclonedx-go v0.5.0
 	github.com/anchore/stereoscope v0.0.0-20220201190559-f162f1e96f45
-	github.com/anchore/syft v0.37.4
+	github.com/anchore/syft v0.37.10
 	github.com/docker/docker v20.10.12+incompatible
 	github.com/google/go-containerregistry v0.8.0
 	github.com/jessevdk/go-flags v1.5.0
