@@ -3,7 +3,7 @@ module github.com/paketo-buildpacks/stacks/create-stack
 go 1.16
 
 require (
-	github.com/CycloneDX/cyclonedx-go v0.4.0
+	github.com/CycloneDX/cyclonedx-go v0.5.0
 	github.com/anchore/stereoscope v0.0.0-20220201190559-f162f1e96f45
 	github.com/anchore/syft v0.37.4
 	github.com/docker/docker v20.10.12+incompatible
