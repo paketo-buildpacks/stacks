@@ -59,8 +59,8 @@ func (b BOM) Generate(imageTag string) ([]string, error) {
 
 	sbomResult := sbom.SBOM{
 		Artifacts: sbom.Artifacts{
-			PackageCatalog:    catalog,
-			LinuxDistribution: release,
+			PackageCatalog: catalog,
+			Distro:         release,
 		},
 		Source: src.Metadata,
 	}
