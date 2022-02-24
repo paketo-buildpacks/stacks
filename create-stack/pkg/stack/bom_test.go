@@ -104,7 +104,7 @@ func testBOM(t *testing.T, context spec.G, it spec.S) {
 					sbomStruct, _, err := syft.Decode(bomContent)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(sbomStruct.Artifacts.PackageCatalog.PackageCount()).Should(BeNumerically(">", 0))
-					Expect(sbomStruct.Artifacts.LinuxDistribution.Name).To(Equal("Alpine Linux"))
+					Expect(sbomStruct.Artifacts.Distro.Name()).To(Equal("alpine"))
 				} else {
 					var bom cyclonedx.BOM
 					decoder := cyclonedx.NewBOMDecoder(bomContent, cyclonedx.BOMFileFormatJSON)
