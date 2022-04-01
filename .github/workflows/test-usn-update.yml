@@ -5,7 +5,7 @@ on:
     branches: [ main ]
     paths:
     - '.github/workflows/test-usn-update.yml'
-    - 'actions/usn-update/entrypoint/**'
+    - 'actions/usn-update/usn-recorder/**'
 
 jobs:
   test-usn-update:
