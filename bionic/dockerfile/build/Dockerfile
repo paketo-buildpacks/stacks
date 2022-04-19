@@ -16,5 +16,5 @@ RUN echo "debconf debconf/frontend select noninteractive" | debconf-set-selectio
   apt-get -y $package_args install $packages && \
   rm -rf /var/lib/apt/lists/* /tmp/*
 
-RUN curl -sL -o /usr/local/bin/yj https://github.com/sclevine/yj/releases/latest/download/yj-linux-amd64 \
+RUN curl -sSfL -o /usr/local/bin/yj https://github.com/sclevine/yj/releases/latest/download/yj-linux-amd64 \
   && chmod +x /usr/local/bin/yj
