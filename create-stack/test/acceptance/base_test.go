@@ -44,12 +44,14 @@ func testBase(cliPath string) func(*testing.T, spec.G, spec.S) {
 		})
 
 		it.After(func() {
-			for _, command := range [][]string{
+			commands := [][]string{
 				{"image", "rm", settings.Run.CNBRef, "--force"},
 				{"image", "rm", settings.Run.BaseRef, "--force"},
 				{"image", "rm", settings.Build.CNBRef, "--force"},
 				{"image", "rm", settings.Build.BaseRef, "--force"},
-			} {
+			}
+
+			for _, command := range commands {
 				cmd := exec.Command("docker", command...)
 				output, err := cmd.CombinedOutput()
 				Expect(err).NotTo(HaveOccurred(), string(output))
@@ -121,6 +123,18 @@ func testBase(cliPath string) func(*testing.T, spec.G, spec.S) {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(runReleaseDate).To(BeTemporally("~", time.Now(), 10*time.Minute))
 			Expect(runReleaseDate).To(Equal(buildReleaseDate))
+
+			cmd = exec.Command(
+				"docker", "run", "--rm",
+				settings.Build.BaseRef,
+				"git", "config", "--system", "--list",
+			)
+			output, err = cmd.CombinedOutput()
+			Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("failed to run container: %s", output))
+
+			Expect(string(output)).To(ContainSubstring("safe.directory=/workspace"))
+			Expect(string(output)).To(ContainSubstring("safe.directory=/workspace/source-ws"))
+			Expect(string(output)).To(ContainSubstring("safe.directory=/workspace/source"))
 		})
 	}
 }

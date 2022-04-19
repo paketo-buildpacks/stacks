@@ -215,6 +215,18 @@ nonroot:x:65532:
 
 			output, err = exec.Command("docker", "start", "-a", containerID).CombinedOutput()
 			Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("failed to run test app in container: %s", output))
+
+			cmd = exec.Command(
+				"docker", "run", "--rm",
+				settings.Build.BaseRef,
+				"git", "config", "--system", "--list",
+			)
+			output, err = cmd.CombinedOutput()
+			Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("failed to run container: %s", output))
+
+			Expect(string(output)).To(ContainSubstring("safe.directory=/workspace"))
+			Expect(string(output)).To(ContainSubstring("safe.directory=/workspace/source-ws"))
+			Expect(string(output)).To(ContainSubstring("safe.directory=/workspace/source"))
 		})
 	}
 }
