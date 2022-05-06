@@ -186,14 +186,16 @@ func testReleaseNotesGenerator(t *testing.T, when spec.G, it spec.S) {
 			_, err := relevantUSNs.Write(relevantUsnArrayJson)
 			require.NoError(err)
 
-			buildReceiptDiff := `-ii  ruby-loofah          1.6.10ubuntu0.1  amd64  some description
+			buildReceiptDiff := `
+-ii  ruby-loofah          1.6.10ubuntu0.1  amd64  some description
 +ii  ruby-loofah       1.6.12ubuntu0.1      all    some longer description
 -ii  ruby-loofaher     1.6.0   amd64    some description
 +ii  ruby-loofaher     1.6.12Trusty0.1.23   amd64   some description
 -ii  libfreetype6:amd64      2.8.1-2ubuntu2      amd64  some other description
 +ii  libfreetype6:amd64      2.8.1-2ubuntu2.1    amd64  some other description`
 
-			runReceiptDiff := `-ii  ruby-loofah      1.6.10ubuntu0.1  amd64
+			runReceiptDiff := `
+-ii  ruby-loofah      1.6.10ubuntu0.1  amd64
 +ii  ruby-loofah      1.6.12ubuntu0.1       amd64
 -ii  ruby-boofah      1.6.10ubuntu0.1         amd64
 +ii  ruby-boofah      1.6.12ubuntu0.1      amd64`
@@ -222,7 +224,8 @@ func testReleaseNotesGenerator(t *testing.T, when spec.G, it spec.S) {
 			_, err := relevantUSNs.Write(relevantUsnArrayJson)
 			require.NoError(err)
 
-			buildReceiptDiff := `-ii  ruby-loofah  1.6.10ubuntu0.1  amd64  some description
+			buildReceiptDiff := `
+-ii  ruby-loofah  1.6.10ubuntu0.1  amd64  some description
 +ii  ruby-loofah  1.6.12ubuntu0.1  amd64  some description
 -ii  libfreetype6:amd64      2.8.1-2ubuntu2      amd64  some other description
 +ii  libfreetype6:amd64      2.8.1-2ubuntu2.1    amd64  some other description`
@@ -251,10 +254,12 @@ func testReleaseNotesGenerator(t *testing.T, when spec.G, it spec.S) {
 			_, err := relevantUSNs.Write([]byte("[]"))
 			require.NoError(err)
 
-			buildReceiptDiff := `-ii  ruby-loofah  1.6.10ubuntu0.1  amd64  some description
+			buildReceiptDiff := `
+-ii  ruby-loofah  1.6.10ubuntu0.1  amd64  some description
 +ii  ruby-loofah  1.6.12ubuntu0.1  amd64  some description`
 
-			runReceiptDiff := `-ii  ruby-loofah  1.6.10ubuntu0.1  amd64  some description
+			runReceiptDiff := `
+-ii  ruby-loofah  1.6.10ubuntu0.1  amd64  some description
 +ii  ruby-loofah  1.6.12ubuntu0.1  amd64  some description`
 
 			cmd := exec.Command(cliPath,
@@ -281,7 +286,8 @@ func testReleaseNotesGenerator(t *testing.T, when spec.G, it spec.S) {
 			_, err := relevantUSNs.Write(relevantUsnArrayJson)
 			require.NoError(err)
 
-			buildReceiptDiff := `-ii  ruby-loofah  1.6.10ubuntu0.1  amd64  some description
+			buildReceiptDiff := `
+-ii  ruby-loofah  1.6.10ubuntu0.1  amd64  some description
 +ii  ruby-loofah  1.6.12ubuntu0.1  amd64  some description
 -ii  libfreetype6:amd64      2.8.1-2ubuntu2      amd64  some other description
 +ii  libfreetype6:amd64      2.8.1-2ubuntu2.1    amd64  some other description`
