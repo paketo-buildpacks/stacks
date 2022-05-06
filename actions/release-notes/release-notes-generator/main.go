@@ -95,11 +95,11 @@ func documentReceiptDiffs(buildReceiptDiff, runReceiptDiff string) string {
 	var receiptNotes string
 
 	if buildReceiptDiff != "" {
-		receiptNotes = receiptNotes + fmt.Sprintf("\n## Build Receipt Diff\n```\n%s\n```", formatReceiptDiff(buildReceiptDiff))
+		receiptNotes = receiptNotes + fmt.Sprintf("\n\n## Build Receipt Diff\n```\n%s\n```", formatReceiptDiff(buildReceiptDiff))
 	}
 
 	if runReceiptDiff != "" {
-		receiptNotes = receiptNotes + fmt.Sprintf("\n## Run Receipt Diff\n```\n%s\n```", formatReceiptDiff(runReceiptDiff))
+		receiptNotes = receiptNotes + fmt.Sprintf("\n\n## Run Receipt Diff\n```\n%s\n```", formatReceiptDiff(runReceiptDiff))
 	}
 
 	return receiptNotes
