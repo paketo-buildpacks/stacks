@@ -3,7 +3,6 @@ package main_test
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"testing"
@@ -35,13 +34,13 @@ func testEntrypoint(t *testing.T, when spec.G, it spec.S) {
 	)
 
 	it.Before(func() {
-		tempFile, err := ioutil.TempFile("", "entrypoint")
+		tempFile, err := os.CreateTemp("", "entrypoint")
 		require.NoError(err)
 
 		cliPath = tempFile.Name()
 		require.NoError(tempFile.Close())
 
-		relevantUSNs, err = ioutil.TempFile("", "relevant-usns")
+		relevantUSNs, err = os.CreateTemp("", "relevant-usns")
 		require.NoError(err)
 
 		relevantUSNArray := []RecordedUSN{
@@ -57,7 +56,7 @@ func testEntrypoint(t *testing.T, when spec.G, it spec.S) {
 		relevantUsnArrayJson, err = json.MarshalIndent(relevantUSNArray, "", "    ")
 		require.NoError(err)
 
-		allUSNs, err = ioutil.TempFile("", "all-usns")
+		allUSNs, err = os.CreateTemp("", "all-usns")
 		require.NoError(err)
 
 		allUSNArray := []USN{
@@ -120,7 +119,7 @@ func testEntrypoint(t *testing.T, when spec.G, it spec.S) {
 			output, err := cmd.CombinedOutput()
 			require.NoError(err, string(output))
 
-			relevantUSNsContent, err := ioutil.ReadFile(relevantUSNs.Name())
+			relevantUSNsContent, err := os.ReadFile(relevantUSNs.Name())
 			require.NoError(err)
 
 			var updatedUSNs []RecordedUSN
@@ -148,7 +147,7 @@ func testEntrypoint(t *testing.T, when spec.G, it spec.S) {
 			output, err := cmd.CombinedOutput()
 			require.NoError(err, string(output))
 
-			relevantUSNsContent, err := ioutil.ReadFile(relevantUSNs.Name())
+			relevantUSNsContent, err := os.ReadFile(relevantUSNs.Name())
 			require.NoError(err)
 
 			fmt.Println(string(relevantUSNsContent))
