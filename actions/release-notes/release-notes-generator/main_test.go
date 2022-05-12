@@ -2,7 +2,6 @@ package main_test
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"testing"
@@ -46,13 +45,13 @@ func testReleaseNotesGenerator(t *testing.T, when spec.G, it spec.S) {
 	)
 
 	it.Before(func() {
-		tempFile, err := ioutil.TempFile("", "release-notes-generator")
+		tempFile, err := os.CreateTemp("", "release-notes-generator")
 		require.NoError(err)
 
 		cliPath = tempFile.Name()
 		require.NoError(tempFile.Close())
 
-		relevantUSNs, err = ioutil.TempFile("", "relevant-usns")
+		relevantUSNs, err = os.CreateTemp("", "relevant-usns")
 		require.NoError(err)
 
 		relevantUSNArray := []RecordedUSN{
@@ -68,7 +67,7 @@ func testReleaseNotesGenerator(t *testing.T, when spec.G, it spec.S) {
 		relevantUsnArrayJson, err = json.Marshal(relevantUSNArray)
 		require.NoError(err)
 
-		allUSNs, err = ioutil.TempFile("", "all-usns")
+		allUSNs, err = os.CreateTemp("", "all-usns")
 		require.NoError(err)
 
 		allUSNArray := []USN{
@@ -150,22 +149,22 @@ func testReleaseNotesGenerator(t *testing.T, when spec.G, it spec.S) {
 		_, err = allUSNs.Write(jsonUSNArray)
 		require.NoError(err)
 
-		fullReleaseNotesBytes, err := ioutil.ReadFile(fullReleaseNotesFilePath)
+		fullReleaseNotesBytes, err := os.ReadFile(fullReleaseNotesFilePath)
 		require.NoError(err)
 
 		fullReleaseNotes = string(fullReleaseNotesBytes)
 
-		releaseNotesWithoutRunDiffBytes, err := ioutil.ReadFile(releaseNotesWithoutRunDiffFilePath)
+		releaseNotesWithoutRunDiffBytes, err := os.ReadFile(releaseNotesWithoutRunDiffFilePath)
 		require.NoError(err)
 
 		releaseNotesWithoutRunDiff = string(releaseNotesWithoutRunDiffBytes)
 
-		releaseNotesWithoutUSNsBytes, err := ioutil.ReadFile(releaseNotesWithoutUSNsFilePath)
+		releaseNotesWithoutUSNsBytes, err := os.ReadFile(releaseNotesWithoutUSNsFilePath)
 		require.NoError(err)
 
 		releaseNotesWithoutUSNs = string(releaseNotesWithoutUSNsBytes)
 
-		releaseNotesWithoutBaseImagesBytes, err := ioutil.ReadFile(releaseNotesWithoutBaseImagesFilePath)
+		releaseNotesWithoutBaseImagesBytes, err := os.ReadFile(releaseNotesWithoutBaseImagesFilePath)
 		require.NoError(err)
 
 		releaseNotesWithoutBaseImages = string(releaseNotesWithoutBaseImagesBytes)
