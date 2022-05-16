@@ -2,7 +2,6 @@ package main_test
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -33,7 +32,7 @@ func testEntrypoint(t *testing.T, when spec.G, it spec.S) {
 
 	it.Before(func() {
 		var err error
-		tmpDirPath, err = ioutil.TempDir("", "usn-update")
+		tmpDirPath, err = os.MkdirTemp("", "usn-update")
 
 		fullUSNListPath = filepath.Join(tmpDirPath, "fullUSNList")
 
@@ -72,18 +71,18 @@ func testEntrypoint(t *testing.T, when spec.G, it spec.S) {
 
 		jsonUSNArray, err := json.Marshal(allUSNs)
 		require.NoError(err)
-		err = ioutil.WriteFile(fullUSNListPath, jsonUSNArray, 0644)
+		err = os.WriteFile(fullUSNListPath, jsonUSNArray, 0644)
 		require.NoError(err)
 
 		buildReceiptContent := `ii  ruby-loofah  1.6.10ubuntu0.1  amd64  some-description`
-		err = ioutil.WriteFile(buildReceiptPath, []byte(buildReceiptContent), 0644)
+		err = os.WriteFile(buildReceiptPath, []byte(buildReceiptContent), 0644)
 		require.NoError(err)
 
 		runReceiptContents := `ii  milkytracker  1.6.10ubuntu0.1  amd64  some-description`
-		err = ioutil.WriteFile(runReceiptPath, []byte(runReceiptContents), 0644)
+		err = os.WriteFile(runReceiptPath, []byte(runReceiptContents), 0644)
 		require.NoError(err)
 
-		err = ioutil.WriteFile(relevantUSNListPath, []byte("[]"), 0644)
+		err = os.WriteFile(relevantUSNListPath, []byte("[]"), 0644)
 		require.NoError(err)
 
 		cmd := exec.Command(cliPath,
@@ -103,7 +102,7 @@ func testEntrypoint(t *testing.T, when spec.G, it spec.S) {
 			Release: "unreleased",
 		}
 
-		content, err := ioutil.ReadFile(relevantUSNListPath)
+		content, err := os.ReadFile(relevantUSNListPath)
 		require.NoError(err)
 
 		var actualUSNArray []RecordedUSN
@@ -125,15 +124,15 @@ func testEntrypoint(t *testing.T, when spec.G, it spec.S) {
 
 		jsonUSNArray, err := json.Marshal(allUSNs)
 		require.NoError(err)
-		err = ioutil.WriteFile(fullUSNListPath, jsonUSNArray, 0644)
+		err = os.WriteFile(fullUSNListPath, jsonUSNArray, 0644)
 		require.NoError(err)
 
 		buildReceiptContent := `ii  ruby-loofah  1.6.10ubuntu0.1  amd64  some-description`
-		err = ioutil.WriteFile(buildReceiptPath, []byte(buildReceiptContent), 0644)
+		err = os.WriteFile(buildReceiptPath, []byte(buildReceiptContent), 0644)
 		require.NoError(err)
 
 		runReceiptContents := `ii  milkytracker  1.6.10ubuntu0.1  amd64  some-description`
-		err = ioutil.WriteFile(runReceiptPath, []byte(runReceiptContents), 0644)
+		err = os.WriteFile(runReceiptPath, []byte(runReceiptContents), 0644)
 		require.NoError(err)
 
 		relevantRunUSNs := []RecordedUSN{{
@@ -143,7 +142,7 @@ func testEntrypoint(t *testing.T, when spec.G, it spec.S) {
 		relevantRunUSNsJson, err := json.Marshal(relevantRunUSNs)
 		require.NoError(err)
 
-		err = ioutil.WriteFile(relevantUSNListPath, relevantRunUSNsJson, 0644)
+		err = os.WriteFile(relevantUSNListPath, relevantRunUSNsJson, 0644)
 		require.NoError(err)
 
 		cmd := exec.Command(cliPath,
@@ -154,7 +153,7 @@ func testEntrypoint(t *testing.T, when spec.G, it spec.S) {
 		output, err := cmd.CombinedOutput()
 		require.NoError(err, string(output))
 
-		content, err := ioutil.ReadFile(relevantUSNListPath)
+		content, err := os.ReadFile(relevantUSNListPath)
 		require.NoError(err)
 
 		var actualUSNArray []RecordedUSN
@@ -174,18 +173,18 @@ func testEntrypoint(t *testing.T, when spec.G, it spec.S) {
 
 		jsonUSNArray, err := json.Marshal(allUSNs)
 		require.NoError(err)
-		err = ioutil.WriteFile(fullUSNListPath, jsonUSNArray, 0644)
+		err = os.WriteFile(fullUSNListPath, jsonUSNArray, 0644)
 		require.NoError(err)
 
 		buildReceiptContent := `ii  libfreetype6:amd64  2.8.1-2ubuntu2  amd64  some-description`
-		err = ioutil.WriteFile(buildReceiptPath, []byte(buildReceiptContent), 0644)
+		err = os.WriteFile(buildReceiptPath, []byte(buildReceiptContent), 0644)
 		require.NoError(err)
 
 		runReceiptContents := `ii  milkytracker  1.6.10ubuntu0.1  amd64  some-description`
-		err = ioutil.WriteFile(runReceiptPath, []byte(runReceiptContents), 0644)
+		err = os.WriteFile(runReceiptPath, []byte(runReceiptContents), 0644)
 		require.NoError(err)
 
-		err = ioutil.WriteFile(relevantUSNListPath, []byte("[]"), 0644)
+		err = os.WriteFile(relevantUSNListPath, []byte("[]"), 0644)
 		require.NoError(err)
 
 		cmd := exec.Command(cliPath,
@@ -201,7 +200,7 @@ func testEntrypoint(t *testing.T, when spec.G, it spec.S) {
 			Release: "unreleased",
 		}
 
-		content, err := ioutil.ReadFile(relevantUSNListPath)
+		content, err := os.ReadFile(relevantUSNListPath)
 		require.NoError(err)
 
 		var actualUSNArray []RecordedUSN

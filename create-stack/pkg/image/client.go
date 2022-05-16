@@ -2,7 +2,6 @@ package image
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"strings"
@@ -27,7 +26,7 @@ func (c Client) Build(tag, dockerfilePath string, withBuildKit bool, secrets map
 	finalArgs := []string{"build", "-t", tag, "--no-cache"}
 
 	if len(secrets) != 0 {
-		dir, err := ioutil.TempDir("", "docker-secrets")
+		dir, err := os.MkdirTemp("", "docker-secrets")
 		if err != nil {
 			return fmt.Errorf("failed to create temp dir: %w", err)
 		}

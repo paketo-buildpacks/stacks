@@ -2,24 +2,24 @@ package stack
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 )
 
 const arch = "x86_64"
 
 func NewBaseStack(buildTag, runTag, stackDir string, publish bool) (Definition, error) {
-	sources, err := ioutil.ReadFile(filepath.Join(stackDir, "arch", arch, "sources.list"))
+	sources, err := os.ReadFile(filepath.Join(stackDir, "arch", arch, "sources.list"))
 	if err != nil {
 		return Definition{}, fmt.Errorf("failed to read sources list file: %w", err)
 	}
 
-	buildPackages, err := ioutil.ReadFile(filepath.Join(stackDir, "packages", "base", "build"))
+	buildPackages, err := os.ReadFile(filepath.Join(stackDir, "packages", "base", "build"))
 	if err != nil {
 		return Definition{}, fmt.Errorf("failed to read build packages list file: %w", err)
 	}
 
-	runPackages, err := ioutil.ReadFile(filepath.Join(stackDir, "packages", "base", "run"))
+	runPackages, err := os.ReadFile(filepath.Join(stackDir, "packages", "base", "run"))
 	if err != nil {
 		return Definition{}, fmt.Errorf("failed to read run packages list file: %w", err)
 	}

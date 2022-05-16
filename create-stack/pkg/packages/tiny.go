@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/fs"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -37,7 +36,7 @@ func (t Tiny) GetRunPackagesList(imageName string) ([]string, error) {
 			return nil
 		}
 
-		contents, err := ioutil.ReadFile(path)
+		contents, err := os.ReadFile(path)
 		if err != nil {
 			return err
 		}
@@ -79,7 +78,7 @@ func (t Tiny) GetRunPackageMetadata(imageName string) (string, error) {
 			return nil
 		}
 
-		contents, err := ioutil.ReadFile(path)
+		contents, err := os.ReadFile(path)
 		if err != nil {
 			return err
 		}
@@ -136,7 +135,7 @@ func (t Tiny) getRunPackagesDir(imageName string) (string, error) {
 	}
 
 	containerID := strings.TrimSpace(string(output))
-	tmpDir, err := ioutil.TempDir("", "tiny")
+	tmpDir, err := os.MkdirTemp("", "tiny")
 	if err != nil {
 		return "", fmt.Errorf("failed to create tmp file: %w", err)
 	}
