@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/jessevdk/go-flags"
-	"io/ioutil"
 	"os"
 	"regexp"
 	"strings"
@@ -96,7 +95,7 @@ func getAllPkgs(buildReceiptPath, runReceiptPath string) ([]string, error) {
 }
 
 func getUSNs(usnPath string) ([]USN, error) {
-	contents, err := ioutil.ReadFile(usnPath)
+	contents, err := os.ReadFile(usnPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read USN file: %w", err)
 	}
@@ -111,7 +110,7 @@ func getUSNs(usnPath string) ([]USN, error) {
 }
 
 func getRecordedUSNs(recordedUSNPath string) ([]RecordedUSN, error) {
-	contents, err := ioutil.ReadFile(recordedUSNPath)
+	contents, err := os.ReadFile(recordedUSNPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read USN file: %w", err)
 	}
@@ -143,7 +142,7 @@ func isRelevantUSN(usn USN, allPkgs []string, recordedUSNs []RecordedUSN) bool {
 }
 
 func getPkgList(receiptPath string) ([]string, error) {
-	contents, err := ioutil.ReadFile(receiptPath)
+	contents, err := os.ReadFile(receiptPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read receipt file: %w", err)
 	}
@@ -161,7 +160,7 @@ func getPkgList(receiptPath string) ([]string, error) {
 }
 
 func recordUSNs(usns []USN, usnListPath string) error {
-	contents, err := ioutil.ReadFile(usnListPath)
+	contents, err := os.ReadFile(usnListPath)
 	if err != nil {
 		return fmt.Errorf("failed to read USN list file: %w", err)
 	}

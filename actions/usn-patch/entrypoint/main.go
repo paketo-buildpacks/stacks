@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/jessevdk/go-flags"
-	"io/ioutil"
 	"os"
 	"regexp"
 	"strings"
@@ -43,7 +42,7 @@ func main() {
 }
 
 func updateUSNs(relevantUSNsPath, allUSNsPath, buildReceiptDiff, runReceiptDiff, releaseVersion string) error {
-	relevantUSNBytes, err := ioutil.ReadFile(relevantUSNsPath)
+	relevantUSNBytes, err := os.ReadFile(relevantUSNsPath)
 	if err != nil {
 		return fmt.Errorf("error reading relevant USNs file: %w", err)
 	}
@@ -54,7 +53,7 @@ func updateUSNs(relevantUSNsPath, allUSNsPath, buildReceiptDiff, runReceiptDiff,
 		return fmt.Errorf("error unmarshalling relevant USNs: %w", err)
 	}
 
-	allUSNBytes, err := ioutil.ReadFile(allUSNsPath)
+	allUSNBytes, err := os.ReadFile(allUSNsPath)
 	if err != nil {
 		return fmt.Errorf("error reading all USNs file: %w", err)
 	}

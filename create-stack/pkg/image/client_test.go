@@ -2,7 +2,6 @@ package image_test
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"testing"
@@ -45,7 +44,7 @@ func testImageClient(t *testing.T, when spec.G, it spec.S) {
 	})
 
 	it("can build images", func() {
-		dir, err := ioutil.TempDir("", "dockerfile-test")
+		dir, err := os.MkdirTemp("", "dockerfile-test")
 		Expect(err).NotTo(HaveOccurred())
 
 		file, err := os.Create(fmt.Sprintf("%s/%s", dir, "Dockerfile"))
@@ -71,7 +70,7 @@ LABEL testing.build.arg.key=$test_build_arg`)
 	})
 
 	it("can build with docker buildkit", func() {
-		dir, err := ioutil.TempDir("", "dockerfile-test")
+		dir, err := os.MkdirTemp("", "dockerfile-test")
 		Expect(err).NotTo(HaveOccurred())
 
 		file, err := os.Create(fmt.Sprintf("%s/%s", dir, "Dockerfile"))
@@ -92,7 +91,7 @@ LABEL testing.build.arg.key=$test_build_arg`)
 	})
 
 	it("can pass secrets to docker build command", func() {
-		dir, err := ioutil.TempDir("", "dockerfile-test")
+		dir, err := os.MkdirTemp("", "dockerfile-test")
 		Expect(err).NotTo(HaveOccurred())
 
 		file, err := os.Create(fmt.Sprintf("%s/%s", dir, "Dockerfile"))

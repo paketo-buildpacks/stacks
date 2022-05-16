@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strings"
 
@@ -148,7 +147,7 @@ func formatReceiptDiff(receiptDiff string) string {
 }
 
 func documentUSNs(relevantUSNsPath, allUSNsPath, releaseVersion string) (string, error) {
-	relevantUSNBytes, err := ioutil.ReadFile(relevantUSNsPath)
+	relevantUSNBytes, err := os.ReadFile(relevantUSNsPath)
 	if err != nil {
 		return "", fmt.Errorf("error reading relevant USNs file: %w", err)
 	}
@@ -159,7 +158,7 @@ func documentUSNs(relevantUSNsPath, allUSNsPath, releaseVersion string) (string,
 		return "", fmt.Errorf("error unmarshalling relevant USNs: %w", err)
 	}
 
-	allUSNBytes, err := ioutil.ReadFile(allUSNsPath)
+	allUSNBytes, err := os.ReadFile(allUSNsPath)
 	if err != nil {
 		return "", fmt.Errorf("error reading all USNs file: %w", err)
 	}

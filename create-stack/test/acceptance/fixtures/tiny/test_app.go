@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
@@ -15,7 +14,7 @@ import (
 func writeToTemp(w io.Writer) {
 	fmt.Printf("Try writing to file... ")
 	content := []byte("temporary file's content")
-	tmpfile, err := ioutil.TempFile("", "example")
+	tmpfile, err := os.CreateTemp("", "example")
 	if err != nil {
 		fmt.Printf("FAIL\n")
 		log.Fatal(err)
