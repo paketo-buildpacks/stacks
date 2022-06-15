@@ -3,6 +3,7 @@ ca-certificates
 curl
 git
 jq
+libexpat1
 libgmp-dev
 libssl1.1
 libyaml-0-2
