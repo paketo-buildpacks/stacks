@@ -210,7 +210,7 @@ func testBOM(t *testing.T, context spec.G, it spec.S) {
 			context("given an invalid image to attach to", func() {
 				it("returns an error", func() {
 					err := bom.Attach("nonexistent-image", []string{inputSyftFile})
-					Expect(err).To(MatchError(ContainSubstring("failed to retrieve image digest:")))
+					Expect(err).To(MatchError(ContainSubstring("failed to retrieve image:")))
 				})
 			})
 
