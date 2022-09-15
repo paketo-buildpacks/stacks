@@ -10,7 +10,7 @@ require (
 	github.com/google/go-containerregistry v0.11.0
 	github.com/jessevdk/go-flags v1.5.0
 	github.com/mitchellh/mapstructure v1.4.3 // indirect
-	github.com/onsi/gomega v1.20.0
+	github.com/onsi/gomega v1.20.2
 	github.com/sclevine/spec v1.4.0
 	github.com/ulikunitz/xz v0.5.10
 )
