@@ -1,8 +1,0 @@
-base-files
-ca-certificates
-libc6
-libssl1.1
-netbase
-openssl
-tzdata
-zlib1g

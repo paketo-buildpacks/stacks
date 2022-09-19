@@ -1,8 +1,0 @@
-ca-certificates
-libexpat1
-libssl1.1
-libyaml-0-2
-netbase
-openssl
-tzdata
-zlib1g
